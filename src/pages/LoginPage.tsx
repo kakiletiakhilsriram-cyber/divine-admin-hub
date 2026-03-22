@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
+import { ArrowLeft } from 'lucide-react';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -32,6 +33,17 @@ const LoginPage = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
+      {/* Return to Home Button */}
+      <div className="absolute top-6 left-6 z-50">
+        <Link 
+          to="/" 
+          className="flex items-center gap-2 text-sm font-medium text-foreground/70 hover:text-foreground transition-all duration-300 bg-background/50 backdrop-blur-md px-4 py-2 rounded-full border border-border shadow-sm hover:shadow hover:bg-background"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Return to Home
+        </Link>
+      </div>
+
       {/* Background */}
       <div className="absolute inset-0 temple-gradient opacity-[0.07]" />
       <div className="absolute inset-0" style={{

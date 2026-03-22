@@ -6,6 +6,7 @@ import { Footer } from '@/components/Footer';
 import { ScrollReveal } from '@/components/ScrollReveal';
 import { ExternalLink } from 'lucide-react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
+import sevasHeroImage from '../assets/Sevas/sevasHeroImage.jpg';
 
 const SevasPage = () => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -22,13 +23,19 @@ const SevasPage = () => {
     <div className="min-h-screen">
       <Navbar />
       <div className="pt-16">
-        <section className="py-24 px-4 temple-gradient-subtle">
-          <div className="container mx-auto max-w-4xl text-center">
+        <section 
+          className="relative py-32 px-4 flex items-center justify-center min-h-[40vh] bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: `url(${sevasHeroImage})` }}
+        >
+          <div className="absolute inset-0 bg-black/40" />
+          <div className="container mx-auto max-w-4xl text-center relative z-10 mt-8">
             <ScrollReveal>
-              <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4" style={{ lineHeight: '1.1' }}>
+              <h1 className="font-display text-5xl md:text-6xl font-bold text-white mb-4 drop-shadow-md">
                 Temple Sevas
               </h1>
-              <p className="text-muted-foreground">Sacred rituals and services offered at the temple</p>
+              <p className="text-xl md:text-2xl text-white/95 font-medium drop-shadow">
+                Sacred rituals and services offered at the temple
+              </p>
             </ScrollReveal>
           </div>
         </section>
