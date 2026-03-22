@@ -109,8 +109,11 @@ export type Database = {
           created_at: string
           date: string | null
           description: string | null
+          drive_link: string | null
           id: string
+          image_url: string | null
           media_links: string[] | null
+          subtitle: string | null
           title: string
           updated_at: string
         }
@@ -118,8 +121,11 @@ export type Database = {
           created_at?: string
           date?: string | null
           description?: string | null
+          drive_link?: string | null
           id?: string
+          image_url?: string | null
           media_links?: string[] | null
+          subtitle?: string | null
           title: string
           updated_at?: string
         }
@@ -127,8 +133,11 @@ export type Database = {
           created_at?: string
           date?: string | null
           description?: string | null
+          drive_link?: string | null
           id?: string
+          image_url?: string | null
           media_links?: string[] | null
+          subtitle?: string | null
           title?: string
           updated_at?: string
         }
