@@ -1,34 +1,38 @@
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { ScrollReveal } from '@/components/ScrollReveal';
+import ramaImage from '../assets/Deities/ramaImage.png';
+import sitaImage from '../assets/Deities/sitaImage.png';
+import lakshmanaImage from '../assets/Deities/lakshmanaImage.png';
+import hanumanImage from '../assets/Deities/hanumanImage.png';
 
 const deities = [
   {
     name: 'Lord Rama',
     subtitle: 'The Seventh Avatar of Vishnu',
     description: 'Lord Rama is the embodiment of dharma (righteousness) and the ideal king. His life as depicted in the Ramayana serves as a moral compass for millions. He represents truth, virtue, and unwavering devotion to duty.',
-    image: 'https://d3ehumack2xlu4.cloudfront.net/uploads/products/1737528546.Ramar%20Pattabhishekam%20Photo%20Frame.jpg',
+    image: ramaImage,
     attributes: ['Righteousness', 'Compassion', 'Wisdom', 'Valor'],
   },
   {
     name: 'Goddess Sita',
     subtitle: 'The Divine Consort',
     description: 'Goddess Sita is revered as the epitome of purity, devotion, and virtue. Her unwavering faith in Lord Rama and her strength during trials make her a symbol of feminine power and grace.',
-    image: 'https://i.pinimg.com/474x/5c/fa/5a/5cfa5ad47ea68bc67a94047cde6ad4b2.jpg',
+    image: sitaImage, //'https://i.pinimg.com/474x/5c/fa/5a/5cfa5ad47ea68bc67a94047cde6ad4b2.jpg',
     attributes: ['Purity', 'Devotion', 'Strength', 'Grace'],
   },
   {
     name: 'Lakshmana',
     subtitle: 'The Devoted Brother',
     description: 'Lakshmana exemplifies the ideal of selfless service and brotherly love. His unwavering loyalty to Lord Rama and his sacrifice during the exile period serve as inspiration for devotion and duty.',
-    image: 'https://sree-seetharamachandra-swamy.vercel.app/assets/lakshmana-Dtnn4uSU.jpg',
+    image: lakshmanaImage, // 'https://sree-seetharamachandra-swamy.vercel.app/assets/lakshmana-Dtnn4uSU.jpg',
     attributes: ['Loyalty', 'Service', 'Discipline', 'Courage'],
   },
   {
     name: 'Lord Hanuman',
     subtitle: 'The Ultimate Devotee',
     description: 'Lord Hanuman is celebrated as the greatest devotee of Lord Rama. His extraordinary strength, intelligence, and unwavering devotion make him one of the most beloved deities in Hinduism.',
-    image: 'https://t3.ftcdn.net/jpg/13/98/33/96/360_F_1398339672_myfUYPdopTzVJHfCjNOM0qKjDje4e8FU.jpg',
+    image: hanumanImage, //'https://t3.ftcdn.net/jpg/13/98/33/96/360_F_1398339672_myfUYPdopTzVJHfCjNOM0qKjDje4e8FU.jpg',
     attributes: ['Devotion', 'Strength', 'Wisdom', 'Humility'],
   },
 ];
