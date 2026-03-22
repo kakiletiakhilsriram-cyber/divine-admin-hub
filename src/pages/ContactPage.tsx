@@ -68,20 +68,60 @@ const ContactPage = () => {
               {/* Contact info */}
               <div className="md:col-span-2 space-y-6">
                 <ScrollReveal>
-                  <div className="bg-card rounded-xl p-6 shadow-md space-y-5">
-                    <h2 className="font-display text-xl font-semibold text-foreground">Get in Touch</h2>
-                    <div className="flex items-start gap-3">
-                      <MapPin className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                  <div className="bg-card rounded-xl p-6 shadow-md space-y-6">
+                    <div>
+                      <h2 className="font-display text-2xl font-semibold text-foreground mb-2">Get in Touch</h2>
+                      <p className="text-sm text-muted-foreground leading-relaxed">
+                        Whether you have questions about temple timings, want to organize a special puja, or simply wish to learn more about our activities, we're here to assist you.
+                      </p>
+                    </div>
+
+                    <div className="flex items-start gap-4">
+                      <div className="w-10 h-10 rounded-full temple-gradient flex items-center justify-center shrink-0">
+                        <MapPin className="w-5 h-5 text-primary-foreground" />
+                      </div>
                       <div>
-                        <p className="text-sm font-medium text-foreground">Address</p>
-                        <p className="text-xs text-muted-foreground">Yenugupalli Village, Konaseema, Andhra Pradesh</p>
+                        <p className="text-sm font-semibold text-foreground">Temple Address</p>
+                        <p className="text-xs text-muted-foreground leading-relaxed mt-1">
+                          Sri Ramalayam Temple<br />
+                          Main Street, Yenugupalli Village<br />
+                          Andhra Pradesh, India<br />
+                          PIN: 533240
+                        </p>
                       </div>
                     </div>
-                    <div className="flex items-start gap-3">
-                      <Mail className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+
+                    <div className="flex items-start gap-4">
+                      <div className="w-10 h-10 rounded-full temple-gradient flex items-center justify-center shrink-0">
+                        <Phone className="w-5 h-5 text-primary-foreground" />
+                      </div>
                       <div>
-                        <p className="text-sm font-medium text-foreground">Email</p>
-                        <p className="text-xs text-muted-foreground">info@sriramalayam.org</p>
+                        <p className="text-sm font-semibold text-foreground">Phone</p>
+                        <p className="text-xs text-muted-foreground mt-1">+91 9XXXXXXXXX</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-4">
+                      <div className="w-10 h-10 rounded-full temple-gradient flex items-center justify-center shrink-0">
+                        <Mail className="w-5 h-5 text-primary-foreground" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-foreground">Email</p>
+                        <p className="text-xs text-muted-foreground mt-1">ramalayamkyp@gmail.com</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-4">
+                      <div className="w-10 h-10 rounded-full temple-gradient flex items-center justify-center shrink-0">
+                        <Clock className="w-5 h-5 text-primary-foreground" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-foreground">Temple Timings</p>
+                        <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                          Morning: 6:00 AM - 12:00 PM<br />
+                          Evening: 4:00 PM - 8:00 PM
+                        </p>
+                        <p className="text-xs text-primary mt-1 italic">(Open all days of the week)</p>
                       </div>
                     </div>
                   </div>
