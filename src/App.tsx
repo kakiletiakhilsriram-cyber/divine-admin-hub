@@ -7,6 +7,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Index from "./pages/Index.tsx";
 import AboutPage from "./pages/AboutPage.tsx";
+import DeitiesPage from "./pages/DeitiesPage.tsx";
 import SevasPage from "./pages/SevasPage.tsx";
 import EventsPage from "./pages/EventsPage.tsx";
 import GalleryPage from "./pages/GalleryPage.tsx";
