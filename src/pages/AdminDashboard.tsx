@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -9,11 +9,22 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import {
   LayoutDashboard, BookOpen, CalendarDays, Image, MessageSquare,
-  LogOut, Plus, Trash2, Edit, X, Check, Menu,
+  LogOut, Plus, Trash2, Edit, X, Check, Menu, Upload,
 } from 'lucide-react';
 
 type Section = 'sevas' | 'events' | 'gallery' | 'messages';
+
+const GALLERY_CATEGORIES = [
+  { value: 'architecture', label: 'Temple Architecture' },
+  { value: 'interior', label: 'Temple Interior' },
+  { value: 'festivals', label: 'Festivals & Celebrations' },
+  { value: 'trustees', label: 'Trustee & Devotees' },
+];
 
 const AdminDashboard = () => {
   const { signOut, user } = useAuth();
@@ -36,7 +47,6 @@ const AdminDashboard = () => {
 
   return (
     <div className="min-h-screen flex bg-background">
-      {/* Sidebar */}
       <aside className={`fixed inset-y-0 left-0 z-40 w-64 bg-sidebar text-sidebar-foreground transform transition-transform md:relative md:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="p-5 border-b border-sidebar-border">
           <div className="flex items-center gap-3">
@@ -74,10 +84,8 @@ const AdminDashboard = () => {
         </div>
       </aside>
 
-      {/* Overlay */}
       {sidebarOpen && <div className="fixed inset-0 bg-foreground/20 z-30 md:hidden" onClick={() => setSidebarOpen(false)} />}
 
-      {/* Main */}
       <main className="flex-1 min-w-0">
         <header className="h-14 border-b border-border bg-card flex items-center px-4 gap-3 sticky top-0 z-20">
           <button className="md:hidden p-1.5 rounded-md hover:bg-muted" onClick={() => setSidebarOpen(true)}>
@@ -291,8 +299,11 @@ const EventsManager = () => {
 /* ===== GALLERY MANAGER ===== */
 const GalleryManager = () => {
   const queryClient = useQueryClient();
-  const [form, setForm] = useState({ title: '', media_url: '', media_type: 'image' });
-  const [showForm, setShowForm] = useState(false);
+  const [editing, setEditing] = useState<any>(null);
+  const [form, setForm] = useState({ title: '', category: 'architecture', media_url: '' });
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const { data: items, isLoading } = useQuery({
     queryKey: ['admin-gallery'],
@@ -302,70 +313,199 @@ const GalleryManager = () => {
     },
   });
 
-  const addMutation = useMutation({
+  const uploadImage = async (file: File): Promise<string> => {
+    const ext = file.name.split('.').pop();
+    const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`;
+    const { error } = await supabase.storage.from('gallery-images').upload(fileName, file);
+    if (error) throw error;
+    const { data } = supabase.storage.from('gallery-images').getPublicUrl(fileName);
+    return data.publicUrl;
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const url = await uploadImage(file);
+      setForm((prev) => ({ ...prev, media_url: url }));
+      toast.success('Image uploaded');
+    } catch (err) {
+      toast.error('Upload failed');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const saveMutation = useMutation({
     mutationFn: async () => {
-      await supabase.from('gallery').insert({ title: form.title || null, media_url: form.media_url, media_type: form.media_type });
+      const payload = {
+        title: form.title || null,
+        media_url: form.media_url,
+        category: form.category,
+        media_type: 'image',
+      };
+      if (editing?.id) {
+        const { error } = await supabase.from('gallery').update(payload).eq('id', editing.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from('gallery').insert(payload);
+        if (error) throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-gallery'] });
       queryClient.invalidateQueries({ queryKey: ['gallery'] });
-      setForm({ title: '', media_url: '', media_type: 'image' });
-      setShowForm(false);
-      toast.success('Gallery item added');
+      setEditing(null);
+      setForm({ title: '', category: 'architecture', media_url: '' });
+      toast.success(editing?.id ? 'Image updated' : 'Image added');
     },
-    onError: () => toast.error('Failed to add gallery item'),
+    onError: () => toast.error('Failed to save'),
   });
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      await supabase.from('gallery').delete().eq('id', id);
+      const { error } = await supabase.from('gallery').delete().eq('id', id);
+      if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-gallery'] });
-      toast.success('Gallery item deleted');
+      queryClient.invalidateQueries({ queryKey: ['gallery'] });
+      setDeleteId(null);
+      toast.success('Image deleted');
     },
+    onError: () => toast.error('Failed to delete'),
   });
+
+  const startEdit = (item: any) => {
+    setEditing(item);
+    setForm({ title: item.title || '', category: item.category || 'architecture', media_url: item.media_url });
+  };
+
+  const startAdd = () => {
+    setEditing({});
+    setForm({ title: '', category: 'architecture', media_url: '' });
+  };
+
+  const categoryLabel = (val: string) => GALLERY_CATEGORIES.find((c) => c.value === val)?.label || val;
 
   return (
     <div className="space-y-4">
-      {showForm ? (
+      {editing ? (
         <div className="bg-card rounded-xl p-6 shadow-md border border-border">
-          <h3 className="font-display font-semibold text-foreground mb-4">Add Gallery Item</h3>
+          <h3 className="font-display font-semibold text-foreground mb-4">{editing.id ? 'Edit Image' : 'Add New Image'}</h3>
           <div className="space-y-3">
-            <div><Label className="text-xs">Title (optional)</Label><Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Image title" /></div>
-            <div><Label className="text-xs">Media URL (Google Drive or direct link)</Label><Input value={form.media_url} onChange={(e) => setForm({ ...form, media_url: e.target.value })} placeholder="https://..." /></div>
+            <div>
+              <Label className="text-xs">Title (optional)</Label>
+              <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Image title" />
+            </div>
+            <div>
+              <Label className="text-xs">Category</Label>
+              <select
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                value={form.category}
+                onChange={(e) => setForm({ ...form, category: e.target.value })}
+              >
+                {GALLERY_CATEGORIES.map((c) => (
+                  <option key={c.value} value={c.value}>{c.label}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <Label className="text-xs">Image</Label>
+              <div className="flex gap-2 items-center">
+                <Input
+                  value={form.media_url}
+                  onChange={(e) => setForm({ ...form, media_url: e.target.value })}
+                  placeholder="Paste URL or upload"
+                  className="flex-1"
+                />
+                <input type="file" accept="image/*" ref={fileInputRef} className="hidden" onChange={handleFileChange} />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploading}
+                >
+                  <Upload className="w-4 h-4 mr-1" />
+                  {uploading ? 'Uploading...' : 'Upload'}
+                </Button>
+              </div>
+              {form.media_url && (
+                <img src={form.media_url} alt="Preview" className="mt-2 w-32 h-24 object-cover rounded-lg border border-border" />
+              )}
+            </div>
             <div className="flex gap-2">
-              <Button onClick={() => addMutation.mutate()} disabled={!form.media_url.trim() || addMutation.isPending} className="temple-gradient text-primary-foreground">
-                <Check className="w-4 h-4 mr-1" /> Add
+              <Button onClick={() => saveMutation.mutate()} disabled={!form.media_url.trim() || saveMutation.isPending} className="temple-gradient text-primary-foreground">
+                <Check className="w-4 h-4 mr-1" /> Save
               </Button>
-              <Button variant="outline" onClick={() => setShowForm(false)}><X className="w-4 h-4 mr-1" /> Cancel</Button>
+              <Button variant="outline" onClick={() => setEditing(null)}><X className="w-4 h-4 mr-1" /> Cancel</Button>
             </div>
           </div>
         </div>
       ) : (
-        <Button onClick={() => setShowForm(true)} className="temple-gradient text-primary-foreground"><Plus className="w-4 h-4 mr-1" /> Add Gallery Item</Button>
+        <Button onClick={startAdd} className="temple-gradient text-primary-foreground"><Plus className="w-4 h-4 mr-1" /> Add Image</Button>
       )}
 
       {isLoading ? <p className="text-muted-foreground text-sm">Loading...</p> : (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {items?.map((item: any) => (
-            <div key={item.id} className="relative group rounded-lg overflow-hidden shadow-sm border border-border">
-              <img src={item.media_url} alt={item.title || 'Gallery'} className="w-full aspect-square object-cover" />
-              <div className="absolute inset-0 bg-foreground/0 group-hover:bg-foreground/40 transition-colors flex items-center justify-center">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8 bg-card/80 hover:bg-destructive hover:text-destructive-foreground"
-                  onClick={() => deleteMutation.mutate(item.id)}
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
+        <div className="space-y-6">
+          {GALLERY_CATEGORIES.map((cat) => {
+            const catItems = items?.filter((item: any) => (item.category || 'architecture') === cat.value) || [];
+            if (catItems.length === 0) return null;
+            return (
+              <div key={cat.value}>
+                <h4 className="font-display font-semibold text-foreground text-sm mb-3">{cat.label} ({catItems.length})</h4>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {catItems.map((item: any) => (
+                    <div key={item.id} className="relative group rounded-lg overflow-hidden shadow-sm border border-border">
+                      <img src={item.media_url} alt={item.title || 'Gallery'} className="w-full aspect-square object-cover" />
+                      <div className="absolute inset-0 bg-foreground/0 group-hover:bg-foreground/40 transition-colors flex items-center justify-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8 bg-card/80 hover:bg-card"
+                          onClick={() => startEdit(item)}
+                        >
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8 bg-card/80 hover:bg-destructive hover:text-destructive-foreground"
+                          onClick={() => setDeleteId(item.id)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                      {item.title && <p className="text-xs p-2 text-muted-foreground truncate">{item.title}</p>}
+                    </div>
+                  ))}
+                </div>
               </div>
-              {item.title && <p className="text-xs p-2 text-muted-foreground truncate">{item.title}</p>}
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
+
+      {/* Delete Confirmation */}
+      <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Image?</AlertDialogTitle>
+            <AlertDialogDescription>This action cannot be undone. The image will be permanently removed.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => deleteId && deleteMutation.mutate(deleteId)}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

@@ -46,6 +46,7 @@ export type Database = {
       }
       gallery: {
         Row: {
+          category: string | null
           created_at: string
           id: string
           media_type: string | null
@@ -53,6 +54,7 @@ export type Database = {
           title: string | null
         }
         Insert: {
+          category?: string | null
           created_at?: string
           id?: string
           media_type?: string | null
@@ -60,6 +62,7 @@ export type Database = {
           title?: string | null
         }
         Update: {
+          category?: string | null
           created_at?: string
           id?: string
           media_type?: string | null
