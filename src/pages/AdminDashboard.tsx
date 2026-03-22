@@ -110,7 +110,10 @@ const AdminDashboard = () => {
 const SevasManager = () => {
   const queryClient = useQueryClient();
   const [editing, setEditing] = useState<any>(null);
-  const [form, setForm] = useState({ title: '', description: '', date: '' });
+  const [form, setForm] = useState({ title: '', subtitle: '', description: '', drive_link: '', image_url: '' });
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const { data: sevas, isLoading } = useQuery({
     queryKey: ['admin-sevas'],
@@ -120,19 +123,52 @@ const SevasManager = () => {
     },
   });
 
+  const uploadImage = async (file: File): Promise<string> => {
+    const ext = file.name.split('.').pop();
+    const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`;
+    const { error } = await supabase.storage.from('seva-images').upload(fileName, file);
+    if (error) throw error;
+    const { data } = supabase.storage.from('seva-images').getPublicUrl(fileName);
+    return data.publicUrl;
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const url = await uploadImage(file);
+      setForm((prev) => ({ ...prev, image_url: url }));
+      toast.success('Image uploaded');
+    } catch {
+      toast.error('Upload failed');
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const saveMutation = useMutation({
     mutationFn: async () => {
+      const payload = {
+        title: form.title,
+        subtitle: form.subtitle || null,
+        description: form.description || null,
+        drive_link: form.drive_link || null,
+        image_url: form.image_url || null,
+      };
       if (editing?.id) {
-        await supabase.from('sevas').update({ title: form.title, description: form.description, date: form.date }).eq('id', editing.id);
+        const { error } = await supabase.from('sevas').update(payload).eq('id', editing.id);
+        if (error) throw error;
       } else {
-        await supabase.from('sevas').insert({ title: form.title, description: form.description, date: form.date });
+        const { error } = await supabase.from('sevas').insert(payload);
+        if (error) throw error;
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-sevas'] });
       queryClient.invalidateQueries({ queryKey: ['sevas'] });
       setEditing(null);
-      setForm({ title: '', description: '', date: '' });
+      setForm({ title: '', subtitle: '', description: '', drive_link: '', image_url: '' });
       toast.success(editing?.id ? 'Seva updated' : 'Seva added');
     },
     onError: () => toast.error('Failed to save seva'),
@@ -140,22 +176,32 @@ const SevasManager = () => {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      await supabase.from('sevas').delete().eq('id', id);
+      const { error } = await supabase.from('sevas').delete().eq('id', id);
+      if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-sevas'] });
+      queryClient.invalidateQueries({ queryKey: ['sevas'] });
+      setDeleteId(null);
       toast.success('Seva deleted');
     },
+    onError: () => toast.error('Failed to delete'),
   });
 
   const startEdit = (seva: any) => {
     setEditing(seva);
-    setForm({ title: seva.title, description: seva.description || '', date: seva.date || '' });
+    setForm({
+      title: seva.title,
+      subtitle: seva.subtitle || '',
+      description: seva.description || '',
+      drive_link: seva.drive_link || '',
+      image_url: seva.image_url || '',
+    });
   };
 
   const startAdd = () => {
     setEditing({});
-    setForm({ title: '', description: '', date: '' });
+    setForm({ title: '', subtitle: '', description: '', drive_link: '', image_url: '' });
   };
 
   return (
@@ -164,9 +210,21 @@ const SevasManager = () => {
         <div className="bg-card rounded-xl p-6 shadow-md border border-border">
           <h3 className="font-display font-semibold text-foreground mb-4">{editing.id ? 'Edit Seva' : 'Add New Seva'}</h3>
           <div className="space-y-3">
-            <div><Label className="text-xs">Title</Label><Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Seva title" /></div>
-            <div><Label className="text-xs">Date</Label><Input value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} placeholder="e.g. Every Saturday" /></div>
-            <div><Label className="text-xs">Description</Label><Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={3} /></div>
+            <div><Label className="text-xs">Seva Name</Label><Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="e.g. Sri Rama Navami" /></div>
+            <div><Label className="text-xs">Subtitle (optional, e.g. Telugu name)</Label><Input value={form.subtitle} onChange={(e) => setForm({ ...form, subtitle: e.target.value })} placeholder="శ్రీరామనవమి" /></div>
+            <div><Label className="text-xs">Description</Label><Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={3} placeholder="Brief description of the seva" /></div>
+            <div><Label className="text-xs">Google Drive Link</Label><Input value={form.drive_link} onChange={(e) => setForm({ ...form, drive_link: e.target.value })} placeholder="https://drive.google.com/..." /></div>
+            <div>
+              <Label className="text-xs">Image</Label>
+              <div className="flex gap-2 items-center">
+                <Input value={form.image_url} onChange={(e) => setForm({ ...form, image_url: e.target.value })} placeholder="Paste URL or upload" className="flex-1" />
+                <input type="file" accept="image/*" ref={fileInputRef} className="hidden" onChange={handleFileChange} />
+                <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} disabled={uploading}>
+                  <Upload className="w-4 h-4 mr-1" /> {uploading ? 'Uploading...' : 'Upload'}
+                </Button>
+              </div>
+              {form.image_url && <img src={form.image_url} alt="Preview" className="mt-2 w-32 h-24 object-cover rounded-lg border border-border" />}
+            </div>
             <div className="flex gap-2">
               <Button onClick={() => saveMutation.mutate()} disabled={!form.title.trim() || saveMutation.isPending} className="temple-gradient text-primary-foreground">
                 <Check className="w-4 h-4 mr-1" /> Save
@@ -180,22 +238,45 @@ const SevasManager = () => {
       )}
 
       {isLoading ? <p className="text-muted-foreground text-sm">Loading...</p> : (
-        <div className="space-y-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {sevas?.map((seva: any) => (
-            <div key={seva.id} className="bg-card rounded-lg p-4 shadow-sm border border-border flex items-start justify-between gap-4">
-              <div className="min-w-0">
-                <h4 className="font-medium text-foreground text-sm">{seva.title}</h4>
-                {seva.date && <p className="text-xs text-primary mt-0.5">{seva.date}</p>}
-                {seva.description && <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{seva.description}</p>}
-              </div>
-              <div className="flex gap-1 shrink-0">
-                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => startEdit(seva)}><Edit className="w-3.5 h-3.5" /></Button>
-                <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => deleteMutation.mutate(seva.id)}><Trash2 className="w-3.5 h-3.5" /></Button>
+            <div key={seva.id} className="bg-card rounded-xl shadow-sm border border-border overflow-hidden">
+              <div className="flex gap-3 p-4">
+                {seva.image_url ? (
+                  <img src={seva.image_url} alt={seva.title} className="w-20 h-16 rounded-lg object-cover shrink-0" />
+                ) : (
+                  <div className="w-20 h-16 rounded-lg temple-gradient opacity-30 shrink-0" />
+                )}
+                <div className="min-w-0 flex-1">
+                  <h4 className="font-medium text-foreground text-sm">{seva.title}</h4>
+                  {seva.subtitle && <p className="text-xs text-primary mt-0.5">{seva.subtitle}</p>}
+                  {seva.description && <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{seva.description}</p>}
+                </div>
+                <div className="flex flex-col gap-1 shrink-0">
+                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => startEdit(seva)}><Edit className="w-3.5 h-3.5" /></Button>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => setDeleteId(seva.id)}><Trash2 className="w-3.5 h-3.5" /></Button>
+                </div>
               </div>
             </div>
           ))}
         </div>
       )}
+
+      {/* Delete Confirmation */}
+      <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Seva?</AlertDialogTitle>
+            <AlertDialogDescription>This action cannot be undone. The seva will be permanently removed.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={() => deleteId && deleteMutation.mutate(deleteId)}>
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
