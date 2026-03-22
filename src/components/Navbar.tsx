@@ -21,15 +21,13 @@ export const Navbar = () => {
     <nav className="fixed top-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-md border-b border-border shadow-sm">
       <div className="container mx-auto px-4 flex items-center justify-between h-16">
         <Link to="/" className="flex items-center gap-3 group">
-          <div className="w-10 h-10 rounded-full temple-gradient flex items-center justify-center text-primary-foreground font-display font-bold text-lg shadow-md">
-            🕉
-          </div>
+          <img src="/images/logo.png" alt="Sri Ramalayam Logo" className="w-10 h-10" />
           <div>
             <span className="font-display font-semibold text-foreground text-base tracking-tight">
-              Ramalayam
+              Ramalayam<span className="text-muted-foreground">(రామాలయం)</span>
             </span>
             <span className="block text-[10px] text-muted-foreground leading-none">
-              Yenugupalli Village
+              Yenugupalli Village(konaseema)
             </span>
           </div>
         </Link>
