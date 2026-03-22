@@ -8,7 +8,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { Send, MapPin, Phone, Mail, Clock } from 'lucide-react';
+import { MapPin, Phone, Mail, Clock, Send } from 'lucide-react';
+import contactImage from '../assets/contact/contact.jpg';
 
 const ContactPage = () => {
   const [form, setForm] = useState({ name: '', email: '', phone: '', subject: '', message: '' });
@@ -51,13 +52,19 @@ const ContactPage = () => {
     <div className="min-h-screen">
       <Navbar />
       <div className="pt-16">
-        <section className="py-24 px-4 temple-gradient-subtle">
-          <div className="container mx-auto max-w-4xl text-center">
+        <section 
+          className="relative py-32 px-4 flex items-center justify-center min-h-[40vh] bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: `url(${contactImage})` }}
+        >
+          <div className="absolute inset-0 bg-black/40" />
+          <div className="container mx-auto max-w-4xl text-center relative z-10 mt-8">
             <ScrollReveal>
-              <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4" style={{ lineHeight: '1.1' }}>
+              <h1 className="font-display text-5xl md:text-6xl font-bold text-white mb-4 drop-shadow-md">
                 Contact Us
               </h1>
-              <p className="text-muted-foreground">Reach out to us for any queries or information</p>
+              <p className="text-xl md:text-2xl text-white/95 font-medium drop-shadow">
+                We're Here to Help You
+              </p>
             </ScrollReveal>
           </div>
         </section>

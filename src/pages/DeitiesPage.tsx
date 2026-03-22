@@ -5,6 +5,7 @@ import ramaImage from '../assets/Deities/ramaImage.png';
 import sitaImage from '../assets/Deities/sitaImage.png';
 import lakshmanaImage from '../assets/Deities/lakshmanaImage.png';
 import hanumanImage from '../assets/Deities/hanumanImage.png';
+import overlayImage from '../assets/Deities/overlay.jpg';
 
 const deities = [
   {
@@ -56,14 +57,18 @@ const DeitiesPage = () => (
     <Navbar />
     <div className="pt-16">
       {/* Hero */}
-      <section className="relative py-24 px-4 temple-gradient-subtle">
-        <div className="container mx-auto max-w-4xl text-center">
+      <section 
+        className="relative py-32 px-4 flex items-center justify-center min-h-[40vh] bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: `url(${overlayImage})` }}
+      >
+        <div className="absolute inset-0 bg-black/40" />
+        <div className="container mx-auto max-w-4xl text-center relative z-10 mt-8">
           <ScrollReveal>
-            <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4" style={{ lineHeight: '1.1' }}>
+            <h1 className="font-display text-5xl md:text-6xl font-bold text-white mb-4 drop-shadow-md">
               Divine Deities
             </h1>
-            <p className="text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-              Meet the sacred deities worshipped at Sri Ramalayam Temple
+            <p className="text-xl md:text-2xl text-white/95 font-medium drop-shadow">
+              Seek Blessings from the Divine Presence
             </p>
           </ScrollReveal>
         </div>

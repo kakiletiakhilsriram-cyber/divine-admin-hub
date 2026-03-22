@@ -1,20 +1,25 @@
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { ScrollReveal } from '@/components/ScrollReveal';
+import aboutHeroImage from '../assets/About/AP-Dindi_Feature.jpg';
 
 const AboutPage = () => (
   <div className="min-h-screen">
     <Navbar />
     <div className="pt-16">
       {/* Hero */}
-      <section className="relative py-24 px-4 temple-gradient-subtle">
-        <div className="container mx-auto max-w-4xl text-center">
+      <section 
+        className="relative py-32 px-4 flex items-center justify-center min-h-[40vh] bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: `url(${aboutHeroImage})` }}
+      >
+        <div className="absolute inset-0 bg-black/40" />
+        <div className="container mx-auto max-w-4xl text-center relative z-10 mt-8">
           <ScrollReveal>
-            <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4" style={{ lineHeight: '1.1' }}>
-              About Sri Ramalayam
+            <h1 className="font-display text-5xl md:text-6xl font-bold text-white mb-4 drop-shadow-md">
+              About Our Temple
             </h1>
-            <p className="text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-              A sacred temple dedicated to Lord Rama, located in the serene Yenugupalli Village, Konaseema, Andhra Pradesh.
+            <p className="text-xl md:text-2xl text-white/95 font-medium drop-shadow">
+              A Sacred Heritage of Devotion
             </p>
           </ScrollReveal>
         </div>
