@@ -6,7 +6,7 @@ import { Footer } from '@/components/Footer';
 import { ScrollReveal } from '@/components/ScrollReveal';
 import { ExternalLink } from 'lucide-react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
-const sevasHeroImage = 'https://images.unsplash.com/photo-1604948501466-4e9c339b9c24?w=1920&q=80';
+import sevasHeroImage from '@/assets/sevas-hero.jpg';
 
 const SevasPage = () => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
