@@ -25,7 +25,7 @@ const EventsPage = () => {
           style={{ backgroundImage: `url(${eventsHeroImage})` }}
         >
           <div className="absolute inset-0 bg-black/40" />
-          <div className="container mx-auto max-w-4xl text-center relative z-10 mt-8">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10 mt-8">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -42,7 +42,7 @@ const EventsPage = () => {
         </section>
 
         <section className="py-20 px-4 bg-background overflow-hidden relative">
-          <div className="container mx-auto max-w-6xl">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <ScrollReveal className="text-center mb-24 mt-12">
               <h2 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4">Upcoming Festivals</h2>
               <p className="text-muted-foreground text-lg">Join us in celebrating sacred occasions and experience divine blessings</p>

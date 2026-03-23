@@ -62,7 +62,7 @@ const DeitiesPage = () => (
         style={{ backgroundImage: `url(${overlayImage})` }}
       >
         <div className="absolute inset-0 bg-black/40" />
-        <div className="container mx-auto max-w-4xl text-center relative z-10 mt-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10 mt-8">
           <ScrollReveal>
             <h1 className="font-display text-5xl md:text-6xl font-bold text-white mb-4 drop-shadow-md">
               Divine Deities
@@ -76,7 +76,7 @@ const DeitiesPage = () => (
 
       {/* Deity Cards - alternating layout */}
       <section className="py-16 px-4">
-        <div className="container mx-auto max-w-6xl space-y-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-20">
           {deities.map((deity, index) => {
             const isEven = index % 2 === 0;
             return (
@@ -130,7 +130,7 @@ const DeitiesPage = () => (
 
       {/* Darshan Timings */}
       <section className="py-20 px-4 temple-gradient text-primary-foreground">
-        <div className="container mx-auto max-w-4xl text-center space-y-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6">
           <ScrollReveal>
             <h2 className="font-display text-3xl md:text-5xl font-bold">
               Visit Us for Darshan

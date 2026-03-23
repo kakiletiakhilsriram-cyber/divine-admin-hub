@@ -57,7 +57,7 @@ const ContactPage = () => {
           style={{ backgroundImage: `url(${contactImage})` }}
         >
           <div className="absolute inset-0 bg-black/40" />
-          <div className="container mx-auto max-w-4xl text-center relative z-10 mt-8">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10 mt-8">
             <ScrollReveal>
               <h1 className="font-display text-5xl md:text-6xl font-bold text-white mb-4 drop-shadow-md">
                 Contact Us
@@ -70,7 +70,7 @@ const ContactPage = () => {
         </section>
 
         <section className="py-16 px-4">
-          <div className="container mx-auto max-w-5xl">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid md:grid-cols-5 gap-8">
               {/* Contact info */}
               <div className="md:col-span-2 space-y-6">

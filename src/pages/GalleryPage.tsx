@@ -55,7 +55,7 @@ const GalleryPage = () => {
           style={{ backgroundImage: `url(${overlayImage})` }}
         >
           <div className="absolute inset-0 bg-black/40" />
-          <div className="container mx-auto max-w-4xl text-center relative z-10 mt-8">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10 mt-8">
             <ScrollReveal>
               <h1 className="font-display text-5xl md:text-6xl font-bold text-white mb-4 drop-shadow-md">
                 Temple Gallery
@@ -69,7 +69,7 @@ const GalleryPage = () => {
 
         {/* Gallery Sections */}
         <section className="py-16 px-4">
-          <div className="container mx-auto max-w-6xl">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             {isLoading ? (
               <div className="space-y-16">
                 {[1, 2, 3].map((s) => (
@@ -120,7 +120,7 @@ const GalleryPage = () => {
 
         {/* Experience the Divine CTA */}
         <section className="py-16 px-4 temple-gradient-subtle">
-          <div className="container mx-auto max-w-3xl text-center">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <ScrollReveal>
               <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-3">
                 Experience the Divine

@@ -72,7 +72,7 @@ const Index = () => {
 
       {/* About Section */}
       <section className="py-20 px-4 temple-gradient-subtle">
-        <div className="container mx-auto max-w-5xl">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <ScrollReveal>
             <h2 className="font-display text-3xl md:text-4xl font-bold text-center mb-8 text-foreground">
               Our Sacred Heritage
@@ -100,7 +100,7 @@ const Index = () => {
 
       {/* Deities Section */}
       <section className="py-20 px-4">
-        <div className="container mx-auto max-w-5xl">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <ScrollReveal>
             <h2 className="font-display text-3xl md:text-4xl font-bold text-center mb-3 text-foreground">Divine Deities</h2>
             <p className="text-center text-muted-foreground mb-10 text-sm">Worship and seek blessings from the divine presence at our temple</p>
@@ -125,7 +125,7 @@ const Index = () => {
 
       {/* Gallery Section */}
       <section className="py-20 px-4 temple-gradient-subtle">
-        <div className="container mx-auto max-w-5xl">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <ScrollReveal>
             <h2 className="font-display text-3xl md:text-4xl font-bold text-center mb-3 text-foreground">Temple Gallery</h2>
             <p className="text-center text-muted-foreground mb-10 text-sm">Glimpses of divine moments and sacred celebrations</p>
@@ -151,7 +151,7 @@ const Index = () => {
 
       {/* Events Section */}
       <section className="py-20 px-4">
-        <div className="container mx-auto max-w-5xl">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <ScrollReveal>
             <h2 className="font-display text-3xl md:text-4xl font-bold text-center mb-3 text-foreground">Upcoming Events</h2>
             <p className="text-center text-muted-foreground mb-10 text-sm">Join us in celebrating sacred festivals</p>
@@ -192,7 +192,7 @@ const Index = () => {
       {/* Sevas Section */}
       {sevas && sevas.length > 0 && (
         <section className="py-20 px-4 temple-gradient-subtle">
-          <div className="container mx-auto max-w-5xl">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <ScrollReveal>
               <h2 className="font-display text-3xl md:text-4xl font-bold text-center mb-3 text-foreground">Temple Sevas</h2>
               <p className="text-center text-muted-foreground mb-10 text-sm">Sacred rituals and services</p>
