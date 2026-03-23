@@ -55,7 +55,7 @@ const Index = () => {
         </div>
         <div className="relative text-center px-4 max-w-3xl" style={{ animation: 'slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both' }}>
           <h1 className="font-display text-4xl md:text-6xl font-bold text-temple-cream mb-2" style={{ lineHeight: '1.1' }}>
-            Sree Seethaaramachandra Swamy
+            Sree Seetha Ramachandra Swamy
           </h1>
           <p className="font-display text-xl md:text-2xl text-temple-gold/90 mb-2">
             శ్రీ సీతా రామచంద్ర స్వామి
