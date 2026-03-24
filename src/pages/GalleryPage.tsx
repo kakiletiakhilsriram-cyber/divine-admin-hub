@@ -6,7 +6,7 @@ import { Footer } from '@/components/Footer';
 import { ScrollReveal } from '@/components/ScrollReveal';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { X } from 'lucide-react';
-import overlayImage from '../assets/gallery/overlay.jpg';
+import overlayImage from '../assets/gallery/overlay-2.jpg';
 
 const CATEGORY_ORDER = [
   { key: 'architecture', label: 'Temple Architecture' },
