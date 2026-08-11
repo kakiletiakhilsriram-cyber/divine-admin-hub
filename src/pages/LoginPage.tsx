@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,6 +13,9 @@ const LoginPage = () => {
   const [loading, setLoading] = useState(false);
   const { signIn } = useAuth();
   const navigate = useNavigate();
+  const [params] = useSearchParams();
+  const nextParam = params.get('next');
+  const next = nextParam && nextParam.startsWith('/') && !nextParam.startsWith('//') ? nextParam : null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,9 +30,10 @@ const LoginPage = () => {
       toast.error(error.message || 'Login failed');
     } else {
       toast.success('Welcome back!');
-      navigate('/admin');
+      navigate(next ?? '/admin');
     }
   };
+
 
   return (
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden">

@@ -1,0 +1,243 @@
+{
+  "version": 1,
+  "sdk_version": "0.26.2",
+  "path": "/functions/v1/mcp",
+  "auth": {
+    "type": "oauth",
+    "issuer": "https://xdtqbxgjskmvffbsmrtn.supabase.co/auth/v1",
+    "accepted_audiences": [
+      "authenticated"
+    ]
+  },
+  "mcp": {
+    "server": {
+      "name": "divine-admin-hub",
+      "version": "0.1.0",
+      "title": "Divine Admin Hub"
+    },
+    "tools": [
+      {
+        "name": "list_events",
+        "title": "List temple events",
+        "description": "List upcoming and past temple events with dates and descriptions.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "limit": {
+              "default": 20,
+              "description": "Maximum number of events to return.",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "create_event",
+        "title": "Create temple event",
+        "description": "Create a new temple event. Requires an admin account.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "title": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Event title."
+            },
+            "description": {
+              "description": "Event description.",
+              "type": "string"
+            },
+            "date": {
+              "description": "Event date (ISO format, e.g. 2026-04-12).",
+              "type": "string"
+            },
+            "image_url": {
+              "description": "Optional image URL for the event.",
+              "type": "string",
+              "format": "uri"
+            }
+          },
+          "required": [
+            "title"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_sevas",
+        "title": "List sevas",
+        "description": "List the temple's sevas (rituals/services) with descriptions and media links.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "limit": {
+              "default": 20,
+              "description": "Maximum number of sevas to return.",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "create_seva",
+        "title": "Create seva",
+        "description": "Create a new seva entry for the temple. Requires an admin account.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "title": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Seva title."
+            },
+            "subtitle": {
+              "description": "Short subtitle.",
+              "type": "string"
+            },
+            "description": {
+              "description": "Seva description.",
+              "type": "string"
+            },
+            "date": {
+              "description": "Seva date (ISO format).",
+              "type": "string"
+            },
+            "image_url": {
+              "description": "Optional image URL.",
+              "type": "string",
+              "format": "uri"
+            },
+            "drive_link": {
+              "description": "Optional media drive link.",
+              "type": "string",
+              "format": "uri"
+            }
+          },
+          "required": [
+            "title"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_gallery",
+        "title": "List gallery media",
+        "description": "List photos and videos in the temple gallery, optionally filtered by category.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "category": {
+              "description": "Filter by gallery category.",
+              "type": "string"
+            },
+            "limit": {
+              "default": 20,
+              "description": "Maximum number of items to return.",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_messages",
+        "title": "List contact messages",
+        "description": "List contact-form messages sent to the temple. Requires an admin account.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "unread_only": {
+              "default": false,
+              "description": "Return only unread messages.",
+              "type": "boolean"
+            },
+            "limit": {
+              "default": 20,
+              "description": "Maximum number of messages to return.",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "mark_message_read",
+        "title": "Mark message as read",
+        "description": "Mark a contact message as read or unread. Requires an admin account.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "description": "ID of the message."
+            },
+            "is_read": {
+              "default": true,
+              "description": "Whether the message should be marked read.",
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "id"
+          ]
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}

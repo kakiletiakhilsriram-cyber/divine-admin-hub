@@ -16,7 +16,9 @@ import GalleryPage from "./pages/GalleryPage.tsx";
 import ContactPage from "./pages/ContactPage.tsx";
 import LoginPage from "./pages/LoginPage.tsx";
 import AdminDashboard from "./pages/AdminDashboard.tsx";
+import OAuthConsent from "./pages/OAuthConsent.tsx";
 import NotFound from "./pages/NotFound.tsx";
+
 
 const queryClient = new QueryClient();
 
@@ -45,8 +47,10 @@ const AnimatedRoutes = () => {
         <Route path="/gallery" element={<PageWrapper><GalleryPage /></PageWrapper>} />
         <Route path="/contact" element={<PageWrapper><ContactPage /></PageWrapper>} />
         <Route path="/login" element={<PageWrapper><LoginPage /></PageWrapper>} />
+        <Route path="/oauth-consent" element={<PageWrapper><OAuthConsent /></PageWrapper>} />
         <Route path="/admin" element={<ProtectedRoute><PageWrapper><AdminDashboard /></PageWrapper></ProtectedRoute>} />
         <Route path="*" element={<PageWrapper><NotFound /></PageWrapper>} />
+
       </Routes>
     </AnimatePresence>
   );
