@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { MapPin, Phone, Mail, Clock, Send } from 'lucide-react';
+import { MapPin, Mail, Clock, Send } from 'lucide-react';
 import contactImage from '../assets/contact/contact.jpg';
 
 const ContactPage = () => {

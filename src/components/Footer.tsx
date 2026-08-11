@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { MapPin, Phone, Mail, Facebook, Instagram, Youtube } from 'lucide-react';
+import { MapPin, Clock, Mail, Facebook, Instagram, Youtube } from 'lucide-react';
 
 export const Footer = () => (
   <footer className="bg-temple-dark text-temple-cream/80">
