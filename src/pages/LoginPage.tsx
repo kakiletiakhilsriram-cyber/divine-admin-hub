@@ -64,7 +64,7 @@ const LoginPage = () => {
             <span className="text-3xl">🕉</span>
           </div>
           <h1 className="font-display text-2xl font-bold text-foreground">
-            Sri Ramalayam
+            Sri Ramalayam — Admin Login
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
             Temple Administration Portal

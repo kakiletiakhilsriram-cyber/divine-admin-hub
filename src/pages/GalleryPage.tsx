@@ -139,6 +139,7 @@ const GalleryPage = () => {
         <DialogContent className="max-w-4xl p-0 bg-transparent border-none shadow-none">
           <button
             onClick={() => setLightbox(null)}
+            aria-label="Close image viewer"
             className="absolute top-2 right-2 z-50 bg-foreground/60 hover:bg-foreground/80 text-background rounded-full p-2 transition-colors"
           >
             <X className="w-5 h-5" />

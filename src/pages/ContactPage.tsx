@@ -98,15 +98,6 @@ const ContactPage = () => {
                       </div>
                     </div>
 
-                    <div className="flex items-start gap-4">
-                      <div className="w-10 h-10 rounded-full temple-gradient flex items-center justify-center shrink-0">
-                        <Phone className="w-5 h-5 text-primary-foreground" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-semibold text-foreground">Phone</p>
-                        <p className="text-xs text-muted-foreground mt-1">+91 9XXXXXXXXX</p>
-                      </div>
-                    </div>
 
                     <div className="flex items-start gap-4">
                       <div className="w-10 h-10 rounded-full temple-gradient flex items-center justify-center shrink-0">
