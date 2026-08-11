@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { MapPin, Phone, Mail, Facebook, Instagram, Youtube } from 'lucide-react';
+import { MapPin, Clock, Mail, Facebook, Instagram, Youtube } from 'lucide-react';
 
 export const Footer = () => (
   <footer className="bg-temple-dark text-temple-cream/80">
@@ -53,10 +53,10 @@ export const Footer = () => (
               </p>
             </div>
             <div className="flex items-center gap-2">
-              <Phone className="w-4 h-4 text-temple-gold shrink-0" />
-              <a href="tel:+919XXXXXXXXX" className="text-sm text-temple-cream/60 hover:text-temple-gold transition-colors">
-                +91 9XXXXXXXXX
-              </a>
+              <Clock className="w-4 h-4 text-temple-gold shrink-0" />
+              <p className="text-sm text-temple-cream/60">
+                Daily 6:00 AM – 12:00 PM &amp; 4:00 PM – 8:00 PM
+              </p>
             </div>
             <div className="flex items-center gap-2">
               <Mail className="w-4 h-4 text-temple-gold shrink-0" />
