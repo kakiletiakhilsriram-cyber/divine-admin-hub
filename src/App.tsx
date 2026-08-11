@@ -47,8 +47,10 @@ const AnimatedRoutes = () => {
         <Route path="/gallery" element={<PageWrapper><GalleryPage /></PageWrapper>} />
         <Route path="/contact" element={<PageWrapper><ContactPage /></PageWrapper>} />
         <Route path="/login" element={<PageWrapper><LoginPage /></PageWrapper>} />
+        <Route path="/oauth-consent" element={<PageWrapper><OAuthConsent /></PageWrapper>} />
         <Route path="/admin" element={<ProtectedRoute><PageWrapper><AdminDashboard /></PageWrapper></ProtectedRoute>} />
         <Route path="*" element={<PageWrapper><NotFound /></PageWrapper>} />
+
       </Routes>
     </AnimatePresence>
   );
