@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { MapPin, Clock, Mail, Facebook, Instagram, Youtube } from 'lucide-react';
+import { MapPin, Clock, Mail } from 'lucide-react';
 
 export const Footer = () => (
   <footer className="bg-temple-dark text-temple-cream/80">
@@ -25,7 +25,7 @@ export const Footer = () => (
           <div className="space-y-3">
             {[
               { label: 'About Temple', path: '/about' },
-              { label: 'Deities', path: '/about' },
+              { label: 'Deities', path: '/deities' },
               { label: 'Events & Festivals', path: '/events' },
               { label: 'Gallery', path: '/gallery' },
             ].map((link) => (
@@ -67,24 +67,12 @@ export const Footer = () => (
           </div>
         </div>
 
-        {/* Temple Timings & Social */}
+        {/* Temple Timings */}
         <div>
           <h4 className="font-display text-base text-temple-cream font-semibold mb-4">Temple Timings</h4>
           <div className="space-y-2 text-sm text-temple-cream/60 mb-6">
             <p>Morning: 6:00 AM - 12:00 PM</p>
             <p>Evening: 4:00 PM - 8:00 PM</p>
-          </div>
-          <h4 className="font-display text-sm text-temple-gold font-semibold mb-3">Follow Us</h4>
-          <div className="flex gap-3">
-            <a href="#" className="w-9 h-9 rounded-full bg-temple-cream/10 flex items-center justify-center hover:bg-temple-gold/20 transition-colors" aria-label="Facebook">
-              <Facebook className="w-4 h-4 text-temple-cream/70" />
-            </a>
-            <a href="#" className="w-9 h-9 rounded-full bg-temple-cream/10 flex items-center justify-center hover:bg-temple-gold/20 transition-colors" aria-label="Instagram">
-              <Instagram className="w-4 h-4 text-temple-cream/70" />
-            </a>
-            <a href="#" className="w-9 h-9 rounded-full bg-temple-cream/10 flex items-center justify-center hover:bg-temple-gold/20 transition-colors" aria-label="YouTube">
-              <Youtube className="w-4 h-4 text-temple-cream/70" />
-            </a>
           </div>
         </div>
       </div>

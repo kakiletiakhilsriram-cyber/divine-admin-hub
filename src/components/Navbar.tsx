@@ -21,7 +21,7 @@ export const Navbar = () => {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-md border-b border-border shadow-sm">
       <div className="container mx-auto px-4 flex items-center justify-between h-16">
-        <Link to="/" className="flex items-center gap-3 group">
+        <Link to="/" className="flex shrink-0 items-center gap-3 group">
           <img src="/images/logo.png" alt="Sri Ramalayam Logo" className="w-10 h-10" />
           <div>
             <span className="font-display font-semibold text-foreground text-base tracking-tight">
@@ -34,7 +34,7 @@ export const Navbar = () => {
         </Link>
 
         {/* Desktop nav */}
-        <div className="hidden md:flex items-center gap-1">
+        <div className="hidden lg:flex items-center gap-1">
           {navItems.map((item) => (
             <Link
               key={item.path}
@@ -69,8 +69,11 @@ export const Navbar = () => {
         {/* Mobile toggle */}
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="md:hidden p-2 rounded-md hover:bg-muted transition-colors"
+          type="button"
+          className="lg:hidden shrink-0 p-2 rounded-md hover:bg-muted transition-colors"
           aria-label="Toggle menu"
+          aria-expanded={isOpen}
+          aria-controls="temple-navigation-menu"
         >
           {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </button>
@@ -78,7 +81,7 @@ export const Navbar = () => {
 
       {/* Mobile menu */}
       {isOpen && (
-        <div className="md:hidden bg-card border-t border-border" style={{ animation: 'slideUp 0.3s ease-out' }}>
+        <div id="temple-navigation-menu" className="lg:hidden max-h-[calc(100dvh-4rem)] overflow-y-auto bg-card border-t border-border" style={{ animation: 'slideUp 0.3s ease-out' }}>
           <div className="px-4 py-3 space-y-1">
             {navItems.map((item) => (
               <Link
