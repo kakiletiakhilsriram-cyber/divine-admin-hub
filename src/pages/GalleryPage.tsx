@@ -1,11 +1,10 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { ScrollReveal } from '@/components/ScrollReveal';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { X } from 'lucide-react';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import overlayImage from '../assets/gallery/overlay-2.jpg';
 
 const CATEGORY_ORDER = [
@@ -26,6 +25,7 @@ const galleryFallback = [
 
 const GalleryPage = () => {
   const [lightbox, setLightbox] = useState<{ url: string; title: string } | null>(null);
+  const lightboxTrigger = useRef<HTMLButtonElement | null>(null);
 
   const { data: galleryItems, isLoading } = useQuery({
     queryKey: ['gallery'],
@@ -37,12 +37,12 @@ const GalleryPage = () => {
 
   const hasDbItems = galleryItems && galleryItems.length > 0;
   const items = hasDbItems
-    ? galleryItems.map((item: any) => ({ ...item, category: item.category || 'architecture' }))
+    ? galleryItems.map((item) => ({ ...item, category: item.category || 'architecture' }))
     : galleryFallback;
 
   const groupedItems = CATEGORY_ORDER.map((cat) => ({
     ...cat,
-    images: items.filter((item: any) => item.category === cat.key),
+    images: items.filter((item) => item.category === cat.key),
   })).filter((cat) => cat.images.length > 0);
 
   return (
@@ -93,11 +93,17 @@ const GalleryPage = () => {
                       </h2>
                     </ScrollReveal>
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
-                      {section.images.map((item: any, i: number) => (
+                      {section.images.map((item, i) => (
                         <ScrollReveal key={item.id} delay={i * 80}>
-                          <div
-                            className="rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 group cursor-pointer bg-card border border-border"
-                            onClick={() => setLightbox({ url: item.media_url, title: item.title || section.label })}
+                          <button
+                            type="button"
+                            aria-label={`View ${item.title || section.label}`}
+                            aria-haspopup="dialog"
+                            className="block w-full rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 group cursor-pointer bg-card border border-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                            onClick={(event) => {
+                              lightboxTrigger.current = event.currentTarget;
+                              setLightbox({ url: item.media_url, title: item.title || section.label });
+                            }}
                           >
                             <div className="aspect-[4/3] overflow-hidden">
                               <img
@@ -107,7 +113,7 @@ const GalleryPage = () => {
                                 loading="lazy"
                               />
                             </div>
-                          </div>
+                          </button>
                         </ScrollReveal>
                       ))}
                     </div>
@@ -136,14 +142,15 @@ const GalleryPage = () => {
 
       {/* Lightbox Modal */}
       <Dialog open={!!lightbox} onOpenChange={() => setLightbox(null)}>
-        <DialogContent className="max-w-4xl p-0 bg-transparent border-none shadow-none">
-          <button
-            onClick={() => setLightbox(null)}
-            aria-label="Close image viewer"
-            className="absolute top-2 right-2 z-50 bg-foreground/60 hover:bg-foreground/80 text-background rounded-full p-2 transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
+        <DialogContent
+          aria-describedby={undefined}
+          className="max-w-4xl p-0 bg-transparent border-none shadow-none [&>button]:bg-foreground/80 [&>button]:text-background [&>button]:p-2 [&>button]:opacity-100"
+          onCloseAutoFocus={(event) => {
+            event.preventDefault();
+            lightboxTrigger.current?.focus();
+          }}
+        >
+          <DialogTitle className="sr-only">{lightbox?.title || 'Temple image'}</DialogTitle>
           {lightbox && (
             <img
               src={lightbox.url}
