@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
@@ -14,13 +14,21 @@ import contactImage from '../assets/contact/contact.jpg';
 const ContactPage = () => {
   const [form, setForm] = useState({ name: '', email: '', phone: '', subject: '', message: '' });
   const [loading, setLoading] = useState(false);
+  const requestReference = useRef<string | null>(null);
+  const [receivedReference, setReceivedReference] = useState<string | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    requestReference.current = null;
+    setForm((previous) => ({
+      ...previous,
+      [name]: name === 'phone' ? value.replace(/[^0-9]/g, '') : value,
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return;
     if (!form.name.trim() || !form.email.trim() || !form.subject.trim() || !form.message.trim()) {
       toast.error('Please fill in all required fields');
       return;
@@ -29,22 +37,42 @@ const ContactPage = () => {
       toast.error('Please enter a valid email');
       return;
     }
+    if (form.phone && !/^[0-9]{10}$/.test(form.phone)) {
+      toast.error('Enter a 10-digit phone number, or leave it blank');
+      return;
+    }
 
     setLoading(true);
-    const { error } = await supabase.from('messages').insert({
-      name: form.name.trim(),
-      email: form.email.trim(),
-      phone: form.phone.trim() || null,
-      subject: form.subject.trim(),
-      message: form.message.trim(),
-    });
-    setLoading(false);
-
-    if (error) {
-      toast.error('Failed to send message. Please try again.');
-    } else {
-      toast.success('Message sent successfully! We will get back to you soon.');
+    setReceivedReference(null);
+    try {
+      requestReference.current ??= crypto.randomUUID();
+      const { data, error } = await supabase.functions.invoke('submit-contact', {
+        body: {
+          request_id: requestReference.current,
+          name: form.name.trim(),
+          email: form.email.trim(),
+          phone: form.phone.trim() || null,
+          subject: form.subject.trim(),
+          message: form.message.trim(),
+        },
+      });
+      if (error || !data?.received || typeof data.reference !== 'string') {
+        let failure = 'Failed to submit enquiry. Please try again.';
+        if (error?.context instanceof Response) {
+          const details = await error.context.json().catch(() => null);
+          if (typeof details?.error === 'string') failure = details.error;
+        }
+        toast.error(failure);
+        return;
+      }
+      setReceivedReference(data.reference);
+      toast.success('Enquiry received. Replies will be sent to your email.');
       setForm({ name: '', email: '', phone: '', subject: '', message: '' });
+      requestReference.current = null;
+    } catch {
+      toast.error('Failed to submit enquiry. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -135,26 +163,40 @@ const ContactPage = () => {
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-1.5">
                           <Label htmlFor="name" className="text-xs font-medium">Name *</Label>
-                          <Input id="name" name="name" value={form.name} onChange={handleChange} placeholder="Your name" required />
+                          <Input id="name" name="name" value={form.name} onChange={handleChange} placeholder="Your name" maxLength={100} disabled={loading} required />
                         </div>
                         <div className="space-y-1.5">
                           <Label htmlFor="email" className="text-xs font-medium">Email *</Label>
-                          <Input id="email" name="email" type="email" value={form.email} onChange={handleChange} placeholder="your@email.com" required />
+                          <Input id="email" name="email" type="email" value={form.email} onChange={handleChange} placeholder="your@email.com" maxLength={254} disabled={loading} required />
                         </div>
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-1.5">
-                          <Label htmlFor="phone" className="text-xs font-medium">Phone</Label>
-                          <Input id="phone" name="phone" value={form.phone} onChange={handleChange} placeholder="+91 XXXXX XXXXX" />
+                          <Label htmlFor="phone" className="text-xs font-medium">Phone (optional)</Label>
+                          <Input
+                            id="phone"
+                            name="phone"
+                            type="tel"
+                            inputMode="numeric"
+                            autoComplete="tel"
+                            pattern="[0-9]{10}"
+                            maxLength={10}
+                            disabled={loading}
+                            aria-describedby="phone-help"
+                            value={form.phone}
+                            onChange={handleChange}
+                            placeholder="Enter digits only"
+                          />
+                          <p id="phone-help" className="text-xs text-muted-foreground">Optional: enter 10 digits, without +91, spaces or symbols.</p>
                         </div>
                         <div className="space-y-1.5">
                           <Label htmlFor="subject" className="text-xs font-medium">Subject *</Label>
-                          <Input id="subject" name="subject" value={form.subject} onChange={handleChange} placeholder="Subject" required />
+                          <Input id="subject" name="subject" value={form.subject} onChange={handleChange} placeholder="Subject" maxLength={150} disabled={loading} required />
                         </div>
                       </div>
                       <div className="space-y-1.5">
                         <Label htmlFor="message" className="text-xs font-medium">Message *</Label>
-                        <Textarea id="message" name="message" value={form.message} onChange={handleChange} placeholder="Your message..." rows={5} required />
+                        <Textarea id="message" name="message" value={form.message} onChange={handleChange} placeholder="Your message..." rows={5} maxLength={5000} disabled={loading} required />
                       </div>
                       <Button
                         type="submit"
@@ -172,6 +214,11 @@ const ContactPage = () => {
                           </span>
                         )}
                       </Button>
+                      {receivedReference && (
+                        <p role="status" className="text-sm text-primary break-words">
+                          Your enquiry has been received. Reference: {receivedReference}. Replies will be sent to the email address you provided.
+                        </p>
+                      )}
                     </form>
                   </div>
                 </ScrollReveal>
