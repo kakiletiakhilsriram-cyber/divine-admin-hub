@@ -39,7 +39,7 @@ Apply the new migrations in order:
 1. `20261014000100_messages_phone_digits_only.sql`
 2. `20261014000200_contact_email_outbox.sql`
 
-The phone trigger validates inserted/changed phone values but does not rewrite old enquiries or block an unrelated mark-as-read update. The outbox migration removes the old unrestricted anonymous insert policy: visitors must then use `submit-contact`. The RPC functions are executable only by the backend service role, and personal enquiries retain the existing admin-only read policy. Older enquiries are not retroactively emailed.
+The phone trigger validates inserted/changed phone values but does not rewrite old enquiries or block an unrelated mark-as-read update. The outbox migration temporarily preserves the existing anonymous insert policy so the old live frontend keeps saving enquiries during deployment. Only submissions through the new endpoint create email jobs; old-form submissions remain dashboard-only during this transition. The RPC functions are executable only by the backend service role, and personal enquiries retain the existing admin-only read policy. Older enquiries are not retroactively emailed.
 
 Deploy `submit-contact` and `contact-email-worker` with the included function configuration. JWT verification is disabled intentionally for the public form endpoint and worker; the worker instead requires its private bearer secret. Public submission validates inputs and origins and enforces a database rate limit of five new enquiries per email address in 15 minutes. Origin checking is a browser boundary, **not** proof that a caller is human. Add a bot challenge and broader gateway rate limits before exposing the endpoint to significant untrusted traffic.
 
@@ -49,7 +49,7 @@ Create a Supabase Cron job to POST to:
 
 Use `Authorization: Bearer <CONTACT_WORKER_SECRET>` and store the secret in Supabase Vault rather than embedding it in a public script. A once-per-minute job is a reasonable starting configuration; the worker processes one eligible email per call. Monitor queue age and adjust frequency/concurrency if needed. Enable the required Cron/pg_net extensions through the Supabase setup. [Supabase scheduling guidance](https://supabase.com/docs/guides/functions/schedule-functions).
 
-Deployment order matters: apply migrations, configure secrets, deploy functions and the worker schedule, verify staging, then deploy the updated frontend. Migrating while leaving the old frontend live will reject its direct inserts; plan a coordinated release or a brief maintenance window. Do not publish this frontend before its endpoint is ready.
+Deployment order matters: configure secrets, apply migrations, deploy functions and the worker schedule, verify the preview, then deploy the updated frontend. Include the actual preview origin in `CONTACT_ALLOWED_ORIGINS` for testing. Do not publish the frontend before its endpoint is ready. After confirming a real production enquiry in both the dashboard and Gmail, manually execute `supabase/rollout/finalize-contact-cutover.sql` to remove direct anonymous inserts. This file is outside automatic migrations deliberately: running it before the new frontend is live blocks the old form. Until final cutover, the old direct-insert path retains its existing validation/rate-limit limitations. After cutover, restoring the old frontend alone is not a valid rollback; it would require a reviewed database-policy rollback too.
 
 ## Verification before production
 
@@ -59,7 +59,7 @@ Deployment order matters: apply migrations, configure secrets, deploy functions 
 - Use Telugu content and verify it remains readable.
 - Reuse the same submission reference and unchanged content: one record/outbox job. A conflicting payload with that reference must be rejected.
 - Simulate revoked Gmail authorization: enquiry remains stored, pending/failed delivery is visible to admins in `contact_email_outbox`; worker retries after the backoff time.
-- Anonymous callers cannot directly insert/read messages or execute the RPCs; unauthorized worker requests fail.
+- During staged rollout, the old form still saves enquiries and does not email them. After final cutover, anonymous callers cannot directly insert/read messages or execute the RPCs; unauthorized worker requests fail.
 - Check alerts or an operational dashboard for failed/aging notifications. A queued acknowledgement is not an assertion that Gmail has delivered the email.
 
 ## n8n phase

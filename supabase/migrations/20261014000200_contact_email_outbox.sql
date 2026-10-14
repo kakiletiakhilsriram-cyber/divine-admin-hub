@@ -83,5 +83,5 @@ REVOKE ALL ON FUNCTION public.claim_contact_email(uuid) FROM PUBLIC, anon, authe
 GRANT EXECUTE ON FUNCTION public.enqueue_contact_enquiry(uuid,text,text,text,text,text) TO service_role;
 GRANT EXECUTE ON FUNCTION public.claim_contact_email(uuid) TO service_role;
 
--- Visitors must use the validated server endpoint; they cannot bypass it via REST.
-DROP POLICY "Anyone can insert messages" ON public.messages;
+-- Keep the existing form working while backend and frontend are deployed separately.
+-- After the new frontend is live and verified, run rollout/finalize-contact-cutover.sql.
