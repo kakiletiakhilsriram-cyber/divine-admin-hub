@@ -14,6 +14,88 @@ export type Database = {
   }
   public: {
     Tables: {
+      contact_automation_runs: {
+        Row: {
+          attempt_id: string
+          finished_at: string | null
+          message_id: string
+          provider_message_id: string | null
+          route: string
+          started_at: string
+          state: string
+        }
+        Insert: {
+          attempt_id: string
+          finished_at?: string | null
+          message_id: string
+          provider_message_id?: string | null
+          route: string
+          started_at?: string
+          state: string
+        }
+        Update: {
+          attempt_id?: string
+          finished_at?: string | null
+          message_id?: string
+          provider_message_id?: string | null
+          route?: string
+          started_at?: string
+          state?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contact_automation_runs_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: true
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contact_email_events: {
+        Row: {
+          actor_id: string | null
+          created_at: string
+          detail: string
+          event_key: string
+          id: string
+          kind: string
+          message_id: string
+          outcome: string
+          provider_message_id: string | null
+        }
+        Insert: {
+          actor_id?: string | null
+          created_at?: string
+          detail: string
+          event_key: string
+          id?: string
+          kind: string
+          message_id: string
+          outcome: string
+          provider_message_id?: string | null
+        }
+        Update: {
+          actor_id?: string | null
+          created_at?: string
+          detail?: string
+          event_key?: string
+          id?: string
+          kind?: string
+          message_id?: string
+          outcome?: string
+          provider_message_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contact_email_events_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contact_email_outbox: {
         Row: {
           attempts: number
@@ -116,6 +198,7 @@ export type Database = {
         Row: {
           created_at: string
           email: string
+          enquiry_status: string
           id: string
           is_read: boolean | null
           message: string
@@ -126,6 +209,7 @@ export type Database = {
         Insert: {
           created_at?: string
           email: string
+          enquiry_status?: string
           id?: string
           is_read?: boolean | null
           message: string
@@ -136,6 +220,7 @@ export type Database = {
         Update: {
           created_at?: string
           email?: string
+          enquiry_status?: string
           id?: string
           is_read?: boolean | null
           message?: string
@@ -207,6 +292,27 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_contact_enquiries: {
+        Args: {
+          p_delivery?: string
+          p_from?: string
+          p_limit?: number
+          p_offset?: number
+          p_search?: string
+          p_status?: string
+          p_to?: string
+        }
+        Returns: Json
+      }
+      begin_contact_automation: {
+        Args: {
+          p_attempt_id: string
+          p_message_id: string
+          p_route: string
+          p_visitor_email: string
+        }
+        Returns: boolean
+      }
       claim_contact_email: {
         Args: { p_message_id?: string }
         Returns: {
@@ -224,6 +330,15 @@ export type Database = {
           p_subject: string
         }
         Returns: string
+      }
+      finish_contact_automation: {
+        Args: {
+          p_attempt_id: string
+          p_message_id: string
+          p_outcome: string
+          p_provider_message_id?: string
+        }
+        Returns: boolean
       }
       has_role: {
         Args: {
