@@ -10,6 +10,8 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
+    "test:contact-db": "node scripts/verify-contact-tracking.mjs",
+    "test:faq": "node --test automation/n8n/verify-faq.cjs automation/n8n/verify-tracking.cjs",
     "test:watch": "vitest",
     "cap:sync": "npm run build && npx cap sync",
     "cap:open:android": "npx cap open android",
@@ -76,6 +78,7 @@
   },
   "devDependencies": {
     "@capacitor/cli": "^8.3.4",
+    "@electric-sql/pglite": "^0.5.9",
     "@eslint/js": "^9.32.0",
     "@lovable.dev/vite-plugin-dev-server-bridge": "^1.0.2",
     "@lovable.dev/vite-plugin-hmr-gate": "^1.5.0",

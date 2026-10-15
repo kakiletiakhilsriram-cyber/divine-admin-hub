@@ -5,3 +5,7 @@ verify_jwt = false
 
 [functions.contact-email-worker]
 verify_jwt = false
+
+[functions.contact-automation-event]
+# Dedicated server-to-server bearer secret, checked inside the function.
+verify_jwt = false

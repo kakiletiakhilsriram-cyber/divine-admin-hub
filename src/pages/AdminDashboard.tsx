@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { EnquiriesManager } from '@/components/admin/EnquiriesManager';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -99,7 +100,7 @@ const AdminDashboard = () => {
           {active === 'sevas' && <SevasManager />}
           {active === 'events' && <EventsManager />}
           {active === 'gallery' && <GalleryManager />}
-          {active === 'messages' && <MessagesViewer />}
+          {active === 'messages' && <EnquiriesManager />}
         </div>
       </main>
     </div>
@@ -587,86 +588,6 @@ const GalleryManager = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
-  );
-};
-
-/* ===== MESSAGES VIEWER ===== */
-const MessagesViewer = () => {
-  const { data: messages, isLoading } = useQuery({
-    queryKey: ['admin-messages'],
-    queryFn: async () => {
-      const { data } = await supabase.from('messages').select('*').order('created_at', { ascending: false });
-      return data || [];
-    },
-  });
-
-  const queryClient = useQueryClient();
-  const markRead = useMutation({
-    mutationFn: async (id: string) => {
-      await supabase.from('messages').update({ is_read: true }).eq('id', id);
-    },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-messages'] }),
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: async (id: string) => {
-      await supabase.from('messages').delete().eq('id', id);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-messages'] });
-      toast.success('Message deleted');
-    },
-  });
-
-  if (isLoading) return <p className="text-muted-foreground text-sm">Loading messages...</p>;
-
-  return (
-    <div className="space-y-3">
-      {!messages?.length ? (
-        <div className="text-center py-16 text-muted-foreground">
-          <MessageSquare className="w-10 h-10 mx-auto mb-3 opacity-30" />
-          <p className="text-sm">No messages yet</p>
-        </div>
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border text-left">
-                <th className="pb-2 font-medium text-muted-foreground text-xs">Name</th>
-                <th className="pb-2 font-medium text-muted-foreground text-xs">Email</th>
-                <th className="pb-2 font-medium text-muted-foreground text-xs hidden md:table-cell">Subject</th>
-                <th className="pb-2 font-medium text-muted-foreground text-xs hidden lg:table-cell">Message</th>
-                <th className="pb-2 font-medium text-muted-foreground text-xs">Date</th>
-                <th className="pb-2 font-medium text-muted-foreground text-xs">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {messages.map((msg: any) => (
-                <tr key={msg.id} className={`border-b border-border/50 ${!msg.is_read ? 'bg-primary/5' : ''}`}>
-                  <td className="py-3 pr-3 font-medium text-foreground">{msg.name}</td>
-                  <td className="py-3 pr-3 text-muted-foreground">{msg.email}</td>
-                  <td className="py-3 pr-3 text-muted-foreground hidden md:table-cell">{msg.subject}</td>
-                  <td className="py-3 pr-3 text-muted-foreground hidden lg:table-cell max-w-xs truncate">{msg.message}</td>
-                  <td className="py-3 pr-3 text-xs text-muted-foreground whitespace-nowrap">{new Date(msg.created_at).toLocaleDateString()}</td>
-                  <td className="py-3">
-                    <div className="flex gap-1">
-                      {!msg.is_read && (
-                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => markRead.mutate(msg.id)} title="Mark as read">
-                          <Check className="w-3.5 h-3.5 text-primary" />
-                        </Button>
-                      )}
-                      <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => deleteMutation.mutate(msg.id)} title="Delete">
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
     </div>
   );
 };
