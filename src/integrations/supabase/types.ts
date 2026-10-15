@@ -14,12 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      contact_email_events: {
-        Row: { id: string; message_id: string; event_key: string; kind: string; outcome: string; detail: string; provider_message_id: string | null; actor_id: string | null; created_at: string }
-        Insert: { message_id: string; event_key: string; kind: string; outcome: string; detail: string; provider_message_id?: string | null; actor_id?: string | null; id?: string; created_at?: string }
-        Update: { detail?: string }
-        Relationships: []
-      }
       contact_email_outbox: {
         Row: {
           attempts: number
@@ -120,7 +114,6 @@ export type Database = {
       }
       messages: {
         Row: {
-          enquiry_status: string
           created_at: string
           email: string
           id: string
@@ -131,7 +124,6 @@ export type Database = {
           subject: string
         }
         Insert: {
-          enquiry_status?: string
           created_at?: string
           email: string
           id?: string
@@ -142,7 +134,6 @@ export type Database = {
           subject: string
         }
         Update: {
-          enquiry_status?: string
           created_at?: string
           email?: string
           id?: string
@@ -216,10 +207,6 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      admin_contact_enquiries: {
-        Args: { p_search?: string; p_status?: string; p_delivery?: string; p_from?: string; p_to?: string; p_offset?: number; p_limit?: number }
-        Returns: Json
-      }
       claim_contact_email: {
         Args: { p_message_id?: string }
         Returns: {
