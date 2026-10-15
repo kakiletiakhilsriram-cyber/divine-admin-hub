@@ -1,0 +1,22 @@
+[
+  {
+    "id": "visiting-hours",
+    "question": "What are the temple visiting hours?",
+    "answer": "The temple is open daily from 6:00 AM to 12:00 PM in the morning and 4:00 PM to 8:00 PM in the evening."
+  },
+  {
+    "id": "entry-fee",
+    "question": "Is there any entry fee?",
+    "answer": "No, there is no entry fee. The temple welcomes all devotees. However, donations are welcome and help in temple maintenance."
+  },
+  {
+    "id": "special-pujas",
+    "question": "Can I arrange special pujas?",
+    "answer": "Yes, you can arrange special pujas by contacting the temple office. Please call or email us with your requirements and preferred dates."
+  },
+  {
+    "id": "prasadam",
+    "question": "Are there facilities for prasadam?",
+    "answer": "Yes, prasadam is distributed daily after the morning and evening aartis. Special prasadam is also available during festivals."
+  }
+]

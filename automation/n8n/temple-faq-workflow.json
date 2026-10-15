@@ -1,0 +1,285 @@
+{
+  "name": "Temple Enquiry Responses",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "simple": false,
+        "filters": {
+          "q": "in:inbox from:ramalayamkyp@gmail.com to:ramalayamkyp@gmail.com subject:\"Temple enquiry\"",
+          "readStatus": "both"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        0
+      ],
+      "id": "ec650c49-5b10-4bdf-afa9-b17bb0f7d27e",
+      "name": "Gmail Trigger"
+    },
+    {
+      "id": "7a2dd183-ed73-4600-9093-638d53d95f42",
+      "name": "Validate and match approved FAQ",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        0
+      ],
+      "parameters": {
+        "jsCode": "'use strict';\n\n// Answers supplied and approved by the temple owner on 2026-10-15.\nconst ADMIN_EMAIL = 'ramalayamkyp@gmail.com';\nconst UUID = '[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}';\nconst FAQS = [\n  {\n    id: 'visiting-hours',\n    question: 'What are the temple visiting hours?',\n    answer: 'The temple is open daily from 6:00 AM to 12:00 PM in the morning and 4:00 PM to 8:00 PM in the evening.',\n    patterns: [\n      /^(?:what are )?(?:the )?(?:temple )?(?:visiting hours|opening hours|opening times|timings|hours)$/,\n      /^what (?:time|times) (?:does|is) (?:the )?temple (?:open|close|open and close)$/,\n      /^when (?:does|is) (?:the )?temple (?:open|close|open and close)$/,\n      /^(?:temple )?(?:visiting )?hours enquiry$/,\n    ],\n  },\n  {\n    id: 'entry-fee',\n    question: 'Is there any entry fee?',\n    answer: 'No, there is no entry fee. The temple welcomes all devotees. However, donations are welcome and help in temple maintenance.',\n    patterns: [\n      /^is there (?:any |an? )?(?:entry|entrance|admission) (?:fee|charge)$/,\n      /^(?:what is )?(?:the )?(?:entry|entrance|admission) (?:fee|cost|charge)$/,\n      /^how much (?:does it cost|is it) to (?:enter|visit) (?:the )?temple$/,\n      /^is (?:temple )?entry free$/,\n      /^do i (?:need|have) to pay (?:an? )?(?:entry fee|to enter the temple)$/,\n    ],\n  },\n  {\n    id: 'special-pujas',\n    question: 'Can I arrange special pujas?',\n    answer: 'Yes, you can arrange special pujas by contacting the temple office. Please call or email us with your requirements and preferred dates.',\n    patterns: [\n      /^(?:can|may) (?:i|we) (?:arrange|organise|organize|request) (?:a )?special (?:puja|pujas|pooja|poojas)$/,\n      /^how (?:can|do) (?:i|we) (?:arrange|organise|organize|request) (?:a )?special (?:puja|pujas|pooja|poojas)$/,\n      /^are special (?:pujas|poojas) available$/,\n      /^special (?:puja|pujas|pooja|poojas)(?: enquiry)?$/,\n    ],\n  },\n  {\n    id: 'prasadam',\n    question: 'Are there facilities for prasadam?',\n    answer: 'Yes, prasadam is distributed daily after the morning and evening aartis. Special prasadam is also available during festivals.',\n    patterns: [\n      /^are there facilities for (?:prasadam|prasadh?am)$/,\n      /^is (?:prasadam|prasadh?am) (?:available|provided|distributed)$/,\n      /^(?:when is |what time is )?(?:prasadam|prasadh?am)(?: (?:distributed|available|provided))?$/,\n      /^do you (?:provide|distribute|offer) (?:prasadam|prasadh?am)$/,\n      /^(?:prasadam|prasadh?am) (?:facilities|availability|enquiry)$/,\n    ],\n  },\n];\n\nfunction normalizeQuestion(text) {\n  return text.toLowerCase().replace(/[’‘]/g, \"'\")\n    .replace(/[^a-z0-9'\\s]/g, ' ').replace(/\\s+/g, ' ').trim()\n    .replace(/^(?:(?:hi|hello|namaste)\\s+)+/, '')\n    .replace(/^(?:please (?:tell me|let me know)|i would like to know)\\s+/, '')\n    .replace(/\\s+(?:please|thank you|thanks)$/, '').trim();\n}\n\nfunction matchQuestion(message, subject) {\n  if (/[^\\x00-\\x7f\\u2018\\u2019]/.test(message + subject)) return { matches: [], reason: 'Language or wording requires admin review' };\n  const parts = message.split(/[?\\n;]+/).map(normalizeQuestion).filter(part => part && !/^(hi|hello|namaste|thanks|thank you)$/.test(part));\n  if (!parts.length || parts.length > 8) return { matches: [], reason: 'Question requires admin review' };\n  const matches = [];\n  for (const part of parts) {\n    const found = FAQS.filter(faq => faq.patterns.some(pattern => pattern.test(part)));\n    if (found.length !== 1) return { matches: [], reason: 'Question is outside the approved FAQ wording' };\n    if (!matches.some(faq => faq.id === found[0].id)) matches.push(found[0]);\n  }\n  const title = normalizeQuestion(subject);\n  const generic = /^(?:general )?(?:enquiry|inquiry|question|questions|query|queries|information|faq|test|contact)(?: (?:for|about) (?:the )?temple)?$/.test(title)\n    || /^(?:temple|website) (?:enquiry|inquiry|question|query|faq)$/.test(title);\n  const sameTopic = matches.some(faq => faq.patterns.some(pattern => pattern.test(title)));\n  if (!generic && !sameTopic) return { matches: [], reason: 'Subject adds context outside the matched FAQ' };\n  return { matches, reason: '' };\n}\n\nfunction addresses(field) {\n  if (!field || !Array.isArray(field.value)) return [];\n  return field.value.map(entry => typeof entry.address === 'string' ? entry.address.trim().toLowerCase() : '');\n}\n\nfunction processNotifications(messages, settings = {}) {\n  const seen = new Set();\n  const output = [];\n  for (const [inputIndex, mail] of messages.entries()) {\n    // Only the original website notification is eligible, never a visitor reply.\n    const subjectMatch = typeof mail.subject === 'string' && mail.subject.match(new RegExp('^\\\\[Temple enquiry\\\\] (' + UUID + ')$', 'i'));\n    const from = addresses(mail.from);\n    if (!subjectMatch || from.length !== 1 || from[0] !== ADMIN_EMAIL || !addresses(mail.to).includes(ADMIN_EMAIL)) continue;\n    const reference = subjectMatch[1].toLowerCase();\n    if (seen.has(reference)) continue;\n    seen.add(reference);\n    const text = typeof mail.text === 'string' ? mail.text.replace(/\\r\\n/g, '\\n') : '';\n    const bodyPattern = new RegExp('^A visitor submitted an enquiry through the Sri Ramalayam website\\\\.\\\\nReference: (' + UUID + ')\\\\nName: ([^\\\\n]{1,100})\\\\nEmail: ([^\\\\n]{3,254})\\\\nPhone: (Not provided|[0-9]{10})\\\\nSubject: ([^\\\\n]{1,150})\\\\n\\\\n([\\\\s\\\\S]{1,5000})\\\\n\\\\nReply to this email to respond directly to the visitor\\\\.\\\\s*$', 'i');\n    const body = text.length <= 16384 && !text.includes('\\0') && text.match(bodyPattern);\n    const replyTo = addresses(mail.replyTo);\n    let reason = '';\n    let visitorEmail = '';\n    let question = '';\n    let questionSubject = '';\n    let matches = [];\n    if (!body || body[1].toLowerCase() !== reference) reason = 'Notification body or reference is invalid';\n    else {\n      visitorEmail = body[3].trim().toLowerCase();\n      questionSubject = body[5].trim();\n      question = body[6].trim();\n      if (!/^[^\\s@,;<>]+@[^\\s@,;<>]+\\.[^\\s@,;<>]+$/.test(visitorEmail) || replyTo.length !== 1 || replyTo[0] !== visitorEmail || visitorEmail === ADMIN_EMAIL) {\n        visitorEmail = '';\n        reason = 'Visitor reply address needs admin verification';\n      } else {\n        const match = matchQuestion(question, questionSubject);\n        matches = match.matches;\n        reason = match.reason;\n      }\n    }\n    const route = matches.length ? 'faq' : 'admin';\n    const answer = matches.map(faq => matches.length > 1 ? faq.question + '\\n' + faq.answer : faq.answer).join('\\n\\n');\n    const responseBody = 'Namaste,\\n\\n' + answer + '\\n\\nThis is an automatic reply based on the temple\\'s approved FAQ.\\nIf this does not answer your question, reply to this email for help from the temple admin.\\n\\nTemple administration\\nReference: ' + reference;\n    const receivedAt = Date.parse(mail.date);\n    const startAfter = Date.parse(settings.startAfter || '');\n    const afterCutover = Number.isFinite(receivedAt) && Number.isFinite(startAfter) && receivedAt >= startAfter;\n    const testRecipient = (settings.testRecipient || '').trim().toLowerCase();\n    const permittedMode = settings.deliveryMode === 'live' || (settings.deliveryMode === 'test' && visitorEmail && visitorEmail === testRecipient && visitorEmail !== ADMIN_EMAIL);\n    output.push({\n      inputIndex, reference, notificationMessageId: mail.id || '',\n      route, reason, visitorEmail, questionSubject, question,\n      faqIds: matches.map(faq => faq.id), responseSubject: 'Temple enquiry response - ' + reference,\n      responseBody, adminSubject: '[Admin review] Temple enquiry ' + reference,\n      adminBody: 'This enquiry needs your personal response. No automatic answer was sent to the visitor.\\n\\nReference: ' + reference + '\\nReason: ' + reason + '\\nVisitor: ' + (visitorEmail || 'Verify Reply-To in the original notification') + '\\nSubject: ' + questionSubject + '\\n\\n' + question + '\\n\\nPlease use the original website notification in your inbox to reply to the visitor.',\n      deliveryEnabled: Boolean(afterCutover && permittedMode),\n      deliveryMode: settings.deliveryMode || 'off',\n    });\n  }\n  return output;\n}\n\n\n\n// Keep delivery off until a controlled test and owner review.\nconst DELIVERY = {\n  \"deliveryMode\": \"off\",\n  \"testRecipient\": \"\",\n  \"startAfter\": \"\"\n};\nreturn processNotifications($input.all().map(item => item.json), DELIVERY).map(({inputIndex, ...json}) => ({json, pairedItem: {item: inputIndex}}));"
+      }
+    },
+    {
+      "id": "2fb4d8be-1d4c-4b66-bb30-a7b977e57145",
+      "name": "Delivery enabled",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        500,
+        0
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "3f01985f-b099-4cd2-882d-e13bdc7bbd81",
+              "leftValue": "={{ $json.deliveryEnabled }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "92310573-8a9f-442c-9b2a-7b52b9520627",
+      "name": "Preview only - no emails sent",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        760,
+        220
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "0c2ead4c-8e9a-4d00-97a1-3d26b6e1865d",
+      "name": "Remember attempted reference",
+      "type": "n8n-nodes-base.removeDuplicates",
+      "typeVersion": 2,
+      "position": [
+        760,
+        -100
+      ],
+      "parameters": {
+        "operation": "removeItemsSeenInPreviousExecutions",
+        "logic": "removeItemsWithAlreadySeenKeyValues",
+        "dedupeValue": "={{ $json.reference }}",
+        "options": {
+          "scope": "node",
+          "historySize": 10000
+        }
+      }
+    },
+    {
+      "id": "a21301aa-f89c-4f91-9ef5-f69a9d85d16b",
+      "name": "Approved FAQ matched",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1020,
+        -100
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "5d02d52b-c702-485e-9d18-4540691aa89f",
+              "leftValue": "={{ $json.route }}",
+              "rightValue": "faq",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "90c346bc-19d3-4fe4-beed-af50b8513ad2",
+      "name": "Send approved answer to visitor",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1300,
+        -220
+      ],
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "sendTo": "={{ $json.visitorEmail }}",
+        "subject": "={{ $json.responseSubject }}",
+        "emailType": "text",
+        "message": "={{ $json.responseBody }}",
+        "options": {
+          "appendAttribution": false,
+          "senderName": "Temple administration",
+          "replyTo": "ramalayamkyp@gmail.com"
+        }
+      },
+      "disabled": true,
+      "retryOnFail": false
+    },
+    {
+      "id": "0f3c99db-d8aa-4a25-9433-05444fb40576",
+      "name": "Notify admin of unmatched enquiry",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1300,
+        40
+      ],
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "sendTo": "ramalayamkyp@gmail.com",
+        "subject": "={{ $json.adminSubject }}",
+        "emailType": "text",
+        "message": "={{ $json.adminBody }}",
+        "options": {
+          "appendAttribution": false,
+          "senderName": "Temple administration",
+          "replyTo": "ramalayamkyp@gmail.com"
+        }
+      },
+      "disabled": true,
+      "retryOnFail": false
+    },
+    {
+      "id": "38e8e28f-1f18-42d2-80a4-3f98d7114f4d",
+      "name": "Read before enabling",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        180,
+        -510
+      ],
+      "parameters": {
+        "content": "## DRAFT: preview mode\nFour owner-approved English FAQs (15 Oct 2026).\n\n**No AI provider or AI fees.**\n\n1. Delivery is **off** in the FAQ code node.\n2. Both outgoing Gmail nodes are **disabled**.\n3. Test with an address you control and a fresh cutover timestamp.\n4. Publish only after checking both reply and admin routes.\n\nUnmatched / additional / non-English questions go to the admin. Visitor replies never match the notification trigger. Deduplication remembers attempted references: failed or uncertain sends need admin review. Do not clear history to retry. Back up the n8n data folder.",
+        "height": 400,
+        "width": 750,
+        "color": 4
+      }
+    }
+  ],
+  "connections": {
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Validate and match approved FAQ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate and match approved FAQ": {
+      "main": [
+        [
+          {
+            "node": "Delivery enabled",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delivery enabled": {
+      "main": [
+        [
+          {
+            "node": "Remember attempted reference",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Preview only - no emails sent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Remember attempted reference": {
+      "main": [
+        [
+          {
+            "node": "Approved FAQ matched",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Approved FAQ matched": {
+      "main": [
+        [
+          {
+            "node": "Send approved answer to visitor",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Notify admin of unmatched enquiry",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Asia/Kolkata",
+    "saveDataSuccessExecution": "none",
+    "saveDataErrorExecution": "all"
+  }
+}
