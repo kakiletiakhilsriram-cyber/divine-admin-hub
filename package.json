@@ -17,7 +17,8 @@
     "cap:open:android": "npx cap open android",
     "cap:open:ios": "npx cap open ios",
     "cap:run:android": "npx cap run android",
-    "cap:run:ios": "npx cap run ios"
+    "cap:run:ios": "npx cap run ios",
+    "test:admin-db": "node scripts/verify-admin-mfa.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.3.4",

@@ -1,129 +1,225 @@
-import { useState } from 'react';
-import { useNavigate, useSearchParams, Link } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { toast } from 'sonner';
-import { ArrowLeft } from 'lucide-react';
+import { useEffect, useRef, useState } from "react";
+import { Link, Navigate, useSearchParams } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  AdminAuthLayout,
+  authButtonClass,
+} from "@/components/auth/AdminAuthLayout";
+import { PasswordField } from "@/components/auth/PasswordField";
+import { adminDestination } from "@/lib/admin-auth";
 
-const LoginPage = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const { signIn } = useAuth();
-  const navigate = useNavigate();
+export default function LoginPage() {
+  const auth = useAuth();
   const [params] = useSearchParams();
-  const nextParam = params.get('next');
-  const next = nextParam && nextParam.startsWith('/') && !nextParam.startsWith('//') ? nextParam : null;
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email.trim() || !password.trim()) {
-      toast.error('Please fill in all fields');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [trusted, setTrusted] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState({ email: "", password: "" });
+  const [waiting, setWaiting] = useState(false);
+  const cooldownTimer = useRef<ReturnType<typeof setTimeout>>();
+  useEffect(() => () => clearTimeout(cooldownTimer.current), []);
+  const submitted = useRef(false);
+  const emailRef = useRef<HTMLInputElement>(null);
+  const passwordRef = useRef<HTMLInputElement>(null);
+  const errorRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (error) errorRef.current?.focus();
+  }, [error]);
+  if (auth.status === "admin")
+    return <Navigate to={adminDestination(params.get("next"))} replace />;
+  if (auth.status === "mfa_required")
+    return <Navigate to="/login/verify" replace />;
+  if (auth.status === "recovery")
+    return <Navigate to="/reset-password" replace />;
+  const submit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (submitted.current || auth.loading || waiting) return;
+    setError("");
+    const errors = {
+      email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())
+        ? ""
+        : "Enter a valid email address.",
+      password: password.length ? "" : "Enter your password.",
+    };
+    setFieldErrors(errors);
+    if (errors.email) {
+      emailRef.current?.focus();
       return;
     }
-    setLoading(true);
-    const { error } = await signIn(email, password);
-    setLoading(false);
-    if (error) {
-      toast.error(error.message || 'Login failed');
-    } else {
-      toast.success('Welcome back!');
-      navigate(next ?? '/admin');
+    if (errors.password) {
+      passwordRef.current?.focus();
+      return;
+    }
+    submitted.current = true;
+    setBusy(true);
+    try {
+      const result = await auth.signIn(email, password, trusted);
+      if (result.error) {
+        setError(result.error);
+        if (result.error.startsWith("Too many")) {
+          setWaiting(true);
+          cooldownTimer.current = setTimeout(() => setWaiting(false), 60000);
+        }
+      } else setPassword("");
+    } catch {
+      setError(
+        "Unable to sign in. Please check your connection and try again.",
+      );
+    } finally {
+      submitted.current = false;
+      setBusy(false);
     }
   };
-
-
+  const block = auth.status === "denied" || auth.status === "error";
   return (
-    <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
-      {/* Return to Home Button */}
-      <div className="absolute top-6 left-6 z-50">
-        <Link 
-          to="/" 
-          className="flex items-center gap-2 text-sm font-medium text-foreground/70 hover:text-foreground transition-all duration-300 bg-background/50 backdrop-blur-md px-4 py-2 rounded-full border border-border shadow-sm hover:shadow hover:bg-background"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Return to Home
-        </Link>
-      </div>
-
-      {/* Background */}
-      <div className="absolute inset-0 temple-gradient opacity-[0.07]" />
-      <div className="absolute inset-0" style={{
-        backgroundImage: 'radial-gradient(circle at 20% 50%, hsl(30 90% 48% / 0.08) 0%, transparent 50%), radial-gradient(circle at 80% 20%, hsl(38 92% 50% / 0.06) 0%, transparent 50%)'
-      }} />
-
-      <div
-        className="relative w-full max-w-md mx-4"
-        style={{ animation: 'slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1)' }}
-      >
-        {/* Temple icon */}
-        <div className="text-center mb-8">
-          <div className="w-20 h-20 mx-auto rounded-full temple-gradient flex items-center justify-center shadow-lg mb-4">
-            <span className="text-3xl">🕉</span>
+    <AdminAuthLayout
+      title="Administrator sign in"
+      description="Manage temple information, events and enquiries."
+    >
+      {block ? (
+        <div className="space-y-4">
+          <div role="alert">
+            <h2 className="font-semibold">
+              {auth.status === "denied"
+                ? "Administrator access required"
+                : "Access could not be verified"}
+            </h2>
+            <p className="mt-2 text-sm">
+              {auth.status === "denied"
+                ? "This account has no administrator permission. Contact the temple owner if you believe this is a mistake."
+                : auth.error}
+            </p>
           </div>
-          <h1 className="font-display text-2xl font-bold text-foreground">
-            Sri Ramalayam — Admin Login
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Temple Administration Portal
-          </p>
-        </div>
-
-        {/* Login card */}
-        <div className="bg-card rounded-xl shadow-xl border border-border p-8">
-          <h2 className="font-display text-xl font-semibold text-center mb-6 text-foreground">
-            Sign In
-          </h2>
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm font-medium">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="admin@temple.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="h-11"
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password" className="text-sm font-medium">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="h-11"
-                required
-              />
-            </div>
+          {auth.status === "error" && (
             <Button
-              type="submit"
-              disabled={loading}
-              className="w-full h-11 temple-gradient text-primary-foreground font-medium shadow-md hover:shadow-lg transition-shadow active:scale-[0.97]"
+              className={authButtonClass}
+              onClick={() => void auth.retry()}
             >
-              {loading ? (
-                <span className="flex items-center gap-2">
-                  <span className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-                  Signing in...
-                </span>
-              ) : (
-                'Sign In'
-              )}
+              Retry access check
             </Button>
-          </form>
+          )}
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={() =>
+              void auth
+                .signOut()
+                .catch(() =>
+                  setError(
+                    "Signed out on this device. Please reconnect before signing in again.",
+                  ),
+                )
+            }
+          >
+            Sign out and use another account
+          </Button>
         </div>
-
-        <p className="text-center text-xs text-muted-foreground mt-6">
-          Access restricted to authorized temple administrators
-        </p>
-      </div>
-    </div>
+      ) : (
+        <form
+          onSubmit={submit}
+          noValidate
+          className="space-y-5"
+          aria-busy={busy || auth.loading}
+        >
+          {error && (
+            <div
+              ref={errorRef}
+              tabIndex={-1}
+              role="alert"
+              className="rounded-lg border border-destructive bg-destructive/5 p-3 text-sm"
+            >
+              {error}
+            </div>
+          )}
+          {auth.loading && (
+            <p role="status" className="text-sm">
+              Checking your session and administrator access…
+            </p>
+          )}
+          <div className="space-y-2">
+            <Label htmlFor="email">Admin email</Label>
+            <Input
+              ref={emailRef}
+              id="email"
+              name="email"
+              type="email"
+              autoComplete="username"
+              autoCapitalize="none"
+              spellCheck={false}
+              inputMode="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              aria-invalid={!!fieldErrors.email}
+              aria-describedby={fieldErrors.email ? "email-error" : undefined}
+              disabled={busy || auth.loading}
+              className="h-11"
+              placeholder="Enter your admin email"
+            />
+            {fieldErrors.email && (
+              <p id="email-error" className="text-sm text-destructive">
+                {fieldErrors.email}
+              </p>
+            )}
+          </div>
+          <PasswordField
+            ref={passwordRef}
+            id="password"
+            label="Password"
+            autoComplete="current-password"
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            disabled={busy || auth.loading}
+            aria-invalid={!!fieldErrors.password}
+            aria-describedby={
+              fieldErrors.password ? "password-error" : undefined
+            }
+          />
+          {fieldErrors.password && (
+            <p id="password-error" className="text-sm text-destructive">
+              {fieldErrors.password}
+            </p>
+          )}
+          <label className="flex min-h-11 items-start gap-3 text-sm">
+            <input
+              className="mt-1 h-4 w-4"
+              type="checkbox"
+              checked={trusted}
+              disabled={busy || auth.loading}
+              onChange={(e) => setTrusted(e.target.checked)}
+            />
+            <span>
+              Keep me signed in on this trusted device
+              <span className="mt-1 block text-xs text-muted-foreground">
+                Leave unchecked on a shared computer.
+              </span>
+            </span>
+          </label>
+          <Button
+            type="submit"
+            className={authButtonClass}
+            disabled={busy || auth.loading || waiting}
+          >
+            {busy
+              ? "Signing in…"
+              : waiting
+                ? "Please wait before retrying"
+                : "Sign in"}
+          </Button>
+          <Link
+            className="inline-flex min-h-11 items-center text-sm font-medium underline underline-offset-4"
+            to="/forgot-password"
+          >
+            Forgot password?
+          </Link>
+        </form>
+      )}
+    </AdminAuthLayout>
   );
-};
-
-export default LoginPage;
+}

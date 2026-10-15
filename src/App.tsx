@@ -1,6 +1,7 @@
+import { useCallback, useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { HashRouter, Route, Routes, useLocation } from "react-router-dom";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -15,42 +16,169 @@ import EventsPage from "./pages/EventsPage.tsx";
 import GalleryPage from "./pages/GalleryPage.tsx";
 import ContactPage from "./pages/ContactPage.tsx";
 import LoginPage from "./pages/LoginPage.tsx";
+import MfaVerifyPage from "./pages/MfaVerifyPage";
+import AdminSecurityPage from "./pages/AdminSecurityPage";
+import {
+  ForgotPasswordPage,
+  RecoveryCallbackPage,
+  ResetPasswordPage,
+} from "./pages/PasswordRecovery";
+import { consumeRecoveryCallback } from "@/lib/recovery-callback";
 import AdminDashboard from "./pages/AdminDashboard.tsx";
-import OAuthConsent from "./pages/OAuthConsent.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
-
 const queryClient = new QueryClient();
-
-const PageWrapper = ({ children }: { children: React.ReactNode }) => (
-  <motion.div
-    initial={{ opacity: 0, x: 30 }}
-    animate={{ opacity: 1, x: 0 }}
-    exit={{ opacity: 0, x: -30 }}
-    transition={{ duration: 0.4, ease: "easeInOut" }}
-  >
-    {children}
-  </motion.div>
+const recoveryCallback = consumeRecoveryCallback(
+  window.location,
+  window.history,
 );
+
+const PageWrapper = ({ children }: { children: React.ReactNode }) => {
+  const reducedMotion = useReducedMotion();
+  return (
+    <motion.div
+      initial={reducedMotion ? false : { opacity: 0, x: 30 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={reducedMotion ? undefined : { opacity: 0, x: -30 }}
+      transition={{ duration: reducedMotion ? 0 : 0.4, ease: "easeInOut" }}
+    >
+      {children}
+    </motion.div>
+  );
+};
+
+const RecoveryBoundary = () => {
+  const [pending, setPending] = useState(!!recoveryCallback);
+  const complete = useCallback(() => setPending(false), []);
+  return pending && recoveryCallback ? (
+    <RecoveryCallbackPage callback={recoveryCallback} onComplete={complete} />
+  ) : (
+    <AnimatedRoutes />
+  );
+};
 
 const AnimatedRoutes = () => {
   const location = useLocation();
-  
+
   return (
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
-        <Route path="/" element={<PageWrapper><Index /></PageWrapper>} />
-        <Route path="/about" element={<PageWrapper><AboutPage /></PageWrapper>} />
-        <Route path="/deities" element={<PageWrapper><DeitiesPage /></PageWrapper>} />
-        <Route path="/sevas" element={<PageWrapper><SevasPage /></PageWrapper>} />
-        <Route path="/events" element={<PageWrapper><EventsPage /></PageWrapper>} />
-        <Route path="/gallery" element={<PageWrapper><GalleryPage /></PageWrapper>} />
-        <Route path="/contact" element={<PageWrapper><ContactPage /></PageWrapper>} />
-        <Route path="/login" element={<PageWrapper><LoginPage /></PageWrapper>} />
-        <Route path="/oauth-consent" element={<PageWrapper><OAuthConsent /></PageWrapper>} />
-        <Route path="/admin" element={<ProtectedRoute><PageWrapper><AdminDashboard /></PageWrapper></ProtectedRoute>} />
-        <Route path="*" element={<PageWrapper><NotFound /></PageWrapper>} />
-
+        <Route
+          path="/"
+          element={
+            <PageWrapper>
+              <Index />
+            </PageWrapper>
+          }
+        />
+        <Route
+          path="/about"
+          element={
+            <PageWrapper>
+              <AboutPage />
+            </PageWrapper>
+          }
+        />
+        <Route
+          path="/deities"
+          element={
+            <PageWrapper>
+              <DeitiesPage />
+            </PageWrapper>
+          }
+        />
+        <Route
+          path="/sevas"
+          element={
+            <PageWrapper>
+              <SevasPage />
+            </PageWrapper>
+          }
+        />
+        <Route
+          path="/events"
+          element={
+            <PageWrapper>
+              <EventsPage />
+            </PageWrapper>
+          }
+        />
+        <Route
+          path="/gallery"
+          element={
+            <PageWrapper>
+              <GalleryPage />
+            </PageWrapper>
+          }
+        />
+        <Route
+          path="/contact"
+          element={
+            <PageWrapper>
+              <ContactPage />
+            </PageWrapper>
+          }
+        />
+        <Route
+          path="/login"
+          element={
+            <PageWrapper>
+              <LoginPage />
+            </PageWrapper>
+          }
+        />
+        <Route
+          path="/login/verify"
+          element={
+            <PageWrapper>
+              <MfaVerifyPage />
+            </PageWrapper>
+          }
+        />
+        <Route
+          path="/forgot-password"
+          element={
+            <PageWrapper>
+              <ForgotPasswordPage />
+            </PageWrapper>
+          }
+        />
+        <Route
+          path="/reset-password"
+          element={
+            <PageWrapper>
+              <ResetPasswordPage />
+            </PageWrapper>
+          }
+        />
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute>
+              <PageWrapper>
+                <AdminDashboard />
+              </PageWrapper>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/security"
+          element={
+            <ProtectedRoute>
+              <PageWrapper>
+                <AdminSecurityPage />
+              </PageWrapper>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="*"
+          element={
+            <PageWrapper>
+              <NotFound />
+            </PageWrapper>
+          }
+        />
       </Routes>
     </AnimatePresence>
   );
@@ -64,7 +192,7 @@ const App = () => (
         <Sonner />
         <HashRouter>
           <ScrollToTop />
-          <AnimatedRoutes />
+          <RecoveryBoundary />
         </HashRouter>
       </TooltipProvider>
     </AuthProvider>

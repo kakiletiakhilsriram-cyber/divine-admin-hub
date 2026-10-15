@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { EnquiriesManager } from '@/components/admin/EnquiriesManager';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -35,8 +35,9 @@ const AdminDashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleLogout = async () => {
-    await signOut();
-    navigate('/login');
+    try { await signOut(); }
+    catch { toast.error('Local sign-out completed. The server could not confirm session revocation.'); }
+    finally { navigate('/login'); }
   };
 
   const sections: { key: Section; label: string; icon: any }[] = [
@@ -59,6 +60,7 @@ const AdminDashboard = () => {
           </div>
         </div>
         <nav className="p-3 space-y-1">
+          <Link to="/admin/security" className="flex min-h-11 items-center rounded-lg px-3 text-sm underline">Account security</Link>
           {sections.map((s) => (
             <button
               key={s.key}
