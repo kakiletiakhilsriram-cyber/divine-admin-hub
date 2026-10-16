@@ -29,6 +29,13 @@
       "when": 1792069961191,
       "tag": "0003_contact_enquiry_tracking",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792167137593,
+      "tag": "0004_admin_mfa_assurance",
+      "breakpoints": true
     }
   ]
 }
